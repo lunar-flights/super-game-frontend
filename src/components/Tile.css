@@ -1,0 +1,47 @@
+.tile-container {
+  position: absolute;
+  width: 256px;
+  height: 160px;
+  clip-path: polygon(50% -1%, 105% 50%, 50% 102%, -4% 49%);
+  cursor: pointer;
+  transition: filter 0.3s, transform 0.3s;
+}
+
+.tile-container.selected {
+  transform: scale(1.05);
+  z-index: 1;
+}
+
+.tile-container.adjacent {
+  filter: brightness(1.5);
+}
+
+.tile {
+  width: 100%;
+  height: auto;
+  user-select: none;
+  pointer-events: none;
+}
+
+.tile-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  padding: 2px 4px;
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.unit {
+  position: absolute;
+  width: 88px;
+  height: auto;
+  top: 36%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  user-select: none;
+}

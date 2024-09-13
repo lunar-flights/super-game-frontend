@@ -1,0 +1,14 @@
+body {
+  background-color: #48535e;
+}
+
+.grid-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.isometric-grid {
+  position: relative;
+}
