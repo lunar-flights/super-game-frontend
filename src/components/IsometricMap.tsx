@@ -59,21 +59,31 @@ const IsometricMap: React.FC = () => {
       // Move unit to adjacent tile
       setSelectedUnit(false);
       setSelectedTile(null);
-      setEffectTile({ row, col });
-      soundManager.play("shots");
 
-      setTimeout(() => {
-        setEffectTile(null);
-        soundManager.stop("shots");
+      const tileKey = `${row}-${col}`;
+      const isControlled = controlledTiles.has(tileKey);
+
+      if (isControlled) {
+        soundManager.play("walk");
         setUnitPosition({ row, col });
+      } else {
+        setEffectTile({ row, col });
+        soundManager.play("shots");
 
-        const newTileKey = `${row}-${col}`;
-        setControlledTiles((prevControlledTiles) => {
-          const updatedControlledTiles = new Set(prevControlledTiles);
-          updatedControlledTiles.add(newTileKey);
-          return updatedControlledTiles;
-        });
-      }, 1000);
+        // TESTING: Simulate on-chain transaction with 1 second delay
+        setTimeout(() => {
+          setEffectTile(null);
+          soundManager.stop("shots");
+          setUnitPosition({ row, col });
+
+          const newTileKey = `${row}-${col}`;
+          setControlledTiles((prevControlledTiles) => {
+            const updatedControlledTiles = new Set(prevControlledTiles);
+            updatedControlledTiles.add(newTileKey);
+            return updatedControlledTiles;
+          });
+        }, 1000);
+      }
     } else {
       // Deselect unit and tile
       setSelectedUnit(false);
