@@ -9,7 +9,17 @@ type TileData = {
   row: number;
   col: number;
   controlledBy?: number;
+  isBase?: boolean;
+  basePlayer?: number;
 };
+
+// mockup for tests
+const basePositions = [
+  { row: 0, col: 4, player: 1 },
+  { row: 4, col: 0, player: 2 },
+  { row: 4, col: 8, player: 3 },
+  { row: 8, col: 4, player: 4 },
+];
 
 const IsometricMap: React.FC = () => {
   const tileCountsPerRow = [3, 5, 7, 9, 9, 9, 7, 5, 3];
@@ -38,7 +48,10 @@ const IsometricMap: React.FC = () => {
 
       for (let i = 0; i < tilesInRow; i++) {
         const colIndex = startCol + i;
-        map.set(`${rowIndex}-${colIndex}`, { row: rowIndex, col: colIndex });
+
+        const base = basePositions.find((base) => base.row === rowIndex && base.col === colIndex);
+
+        map.set(`${rowIndex}-${colIndex}`, { row: rowIndex, col: colIndex, isBase: !!base, basePlayer: base?.player });
       }
     }
     return map;
@@ -105,16 +118,19 @@ const IsometricMap: React.FC = () => {
     for (let i = 0; i < tilesInRow; i++) {
       const colIndex = startCol + i;
 
+      const tileKey = `${rowIndex}-${colIndex}`;
+      const tileData = gridMap.get(tileKey);
+      const isBase = tileData?.isBase || false;
+      const basePlayer = tileData?.basePlayer;
+
       const xOffset = (colIndex - rowIndex) * (TILE_DISPLAY_WIDTH / 2);
-      const yOffset = (colIndex + rowIndex) * (TILE_DISPLAY_HEIGHT / 2);
+      const yOffset = (colIndex + rowIndex) * (TILE_DISPLAY_HEIGHT / 2) - (isBase ? 48 : 0);
 
       const isSelected = selectedTile?.row === rowIndex && selectedTile?.col === colIndex;
       const isAdjacent = adjacentTiles.some((tile) => tile.row === rowIndex && tile.col === colIndex);
       const hasUnit = unitPosition.row === rowIndex && unitPosition.col === colIndex;
       const hasEffect = effectTile?.row === rowIndex && effectTile?.col === colIndex;
 
-      const tileKey = `${rowIndex}-${colIndex}`;
-      // const tileData = gridMap.get(tileKey);
       // const controlledBy = tileData?.controlledBy;
       const isControlled = controlledTiles.has(tileKey);
 
@@ -130,6 +146,8 @@ const IsometricMap: React.FC = () => {
           hasUnit={hasUnit}
           hasEffect={hasEffect}
           controlledBy={isControlled ? 4 : undefined}
+          isBase={isBase}
+          basePlayer={basePlayer}
           onClick={() => handleTileClick(rowIndex, colIndex)}
         />
       );

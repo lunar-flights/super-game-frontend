@@ -1,11 +1,41 @@
 .tile-container {
   position: absolute;
   width: 256px;
-  height: 160px;
+  height: auto;
   clip-path: polygon(50% -1%, 105% 50%, 50% 102%, -4% 49%);
   cursor: pointer;
   transition: filter 0.3s, transform 0.3s;
   z-index: 1;
+}
+
+.tile-container.ground {
+  clip-path: polygon(50% -1%, 105% 50%, 50% 102%, -4% 49%);
+}
+
+.tile-container.base {
+  clip-path: polygon(
+    1% 58%,
+    0% 64%,
+    48% 100%,
+    53% 100%,
+    100% 64%,
+    99% 58%,
+    74% 39%,
+    75% 21%,
+    63% 12%,
+    61% 8%,
+    48% 0%,
+    45% 0%,
+    42% 7%,
+    45% 14%,
+    41% 15%,
+    32% 22%,
+    30% 21%,
+    26% 23%,
+    24% 32%,
+    23% 35%,
+    25% 39%
+  );
 }
 
 .tile-container.selected {

@@ -1,5 +1,6 @@
 export const TILE_ORIGINAL_WIDTH = 590;
 export const TILE_ORIGINAL_HEIGHT = 371;
+export const BASE_ORIGINAL_HEIGHT = 480;
 
 export const TILE_DISPLAY_WIDTH = 256;
 
