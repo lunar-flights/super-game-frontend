@@ -1,24 +1,36 @@
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import Tile from "./Tile";
 import "./IsometricMap.css";
 import { TILE_DISPLAY_WIDTH, TILE_DISPLAY_HEIGHT } from "./constants";
 import { getAdjacentTiles } from "./helpers";
+import soundManager from "../SoundManager";
+
+type TileData = {
+  row: number;
+  col: number;
+  controlledBy?: number;
+};
 
 const IsometricMap: React.FC = () => {
   const tileCountsPerRow = [3, 5, 7, 9, 9, 9, 7, 5, 3];
   const totalRows = tileCountsPerRow.length;
   const maxTilesInRow = Math.max(...tileCountsPerRow);
 
-  const [unitPosition, setUnitPosition] = useState<{ row: number; col: number }>({
-    row: 4,
-    col: 4,
-  });
+  const unitInitialPosition = { row: 4, col: 4 };
+  const [unitPosition, setUnitPosition] = useState<{ row: number; col: number }>(unitInitialPosition);
 
-  const [selectedTile, setSelectedTile] = useState<{ row: number; col: number } | null>(null);
+  useEffect(() => {
+    const initialTileKey = `${unitInitialPosition.row}-${unitInitialPosition.col}`;
+    setControlledTiles(new Set([initialTileKey]));
+  }, []);
+
+  const [controlledTiles, setControlledTiles] = useState<Set<string>>(new Set());
+  const [selectedTile, setSelectedTile] = useState<TileData | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<boolean>(false);
+  const [effectTile, setEffectTile] = useState<TileData | null>(null);
 
   const gridMap = useMemo(() => {
-    const map = new Map<string, { row: number; col: number }>();
+    const map = new Map<string, TileData>();
     for (let rowIndex = 0; rowIndex < totalRows; rowIndex++) {
       const tilesInRow = tileCountsPerRow[rowIndex];
       const emptySpaces = maxTilesInRow - tilesInRow;
@@ -42,15 +54,31 @@ const IsometricMap: React.FC = () => {
       // Select unit on a tile
       setSelectedUnit(true);
       setSelectedTile({ row, col });
+      soundManager.play("select");
     } else if (selectedUnit && isAdjacentTile(row, col)) {
       // Move unit to adjacent tile
-      setUnitPosition({ row, col });
       setSelectedUnit(false);
       setSelectedTile(null);
+      setEffectTile({ row, col });
+      soundManager.play("shots");
+
+      setTimeout(() => {
+        setEffectTile(null);
+        soundManager.stop("shots");
+        setUnitPosition({ row, col });
+
+        const newTileKey = `${row}-${col}`;
+        setControlledTiles((prevControlledTiles) => {
+          const updatedControlledTiles = new Set(prevControlledTiles);
+          updatedControlledTiles.add(newTileKey);
+          return updatedControlledTiles;
+        });
+      }, 1000);
     } else {
       // Deselect unit and tile
       setSelectedUnit(false);
       setSelectedTile(null);
+      soundManager.play("select");
     }
   };
 
@@ -73,6 +101,12 @@ const IsometricMap: React.FC = () => {
       const isSelected = selectedTile?.row === rowIndex && selectedTile?.col === colIndex;
       const isAdjacent = adjacentTiles.some((tile) => tile.row === rowIndex && tile.col === colIndex);
       const hasUnit = unitPosition.row === rowIndex && unitPosition.col === colIndex;
+      const hasEffect = effectTile?.row === rowIndex && effectTile?.col === colIndex;
+
+      const tileKey = `${rowIndex}-${colIndex}`;
+      // const tileData = gridMap.get(tileKey);
+      // const controlledBy = tileData?.controlledBy;
+      const isControlled = controlledTiles.has(tileKey);
 
       tiles.push(
         <Tile
@@ -84,6 +118,8 @@ const IsometricMap: React.FC = () => {
           isSelected={isSelected}
           isAdjacent={isAdjacent}
           hasUnit={hasUnit}
+          hasEffect={hasEffect}
+          controlledBy={isControlled ? 4 : undefined}
           onClick={() => handleTileClick(rowIndex, colIndex)}
         />
       );
