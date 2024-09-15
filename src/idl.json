@@ -1,0 +1,446 @@
+{
+  "address": "GnbCZsVXcRXVegmrQj99eSXjoQWTV1K72KYM6yocoP9S",
+  "metadata": {
+    "name": "super_game",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "create_game",
+      "discriminator": [124, 69, 75, 66, 184, 220, 72, 206],
+      "accounts": [
+        {
+          "name": "super_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [83, 85, 80, 69, 82]
+              }
+            ]
+          }
+        },
+        {
+          "name": "creator_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [80, 82, 79, 70, 73, 76, 69]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "game",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [71, 65, 77, 69]
+              },
+              {
+                "kind": "account",
+                "path": "super_state.game_count",
+                "account": "SuperState"
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "writable": true,
+          "signer": true,
+          "relations": ["creator_profile"]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "max_players",
+          "type": "u8"
+        },
+        {
+          "name": "is_multiplayer",
+          "type": "bool"
+        },
+        {
+          "name": "map_size",
+          "type": {
+            "defined": {
+              "name": "MapSize"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "create_player_profile",
+      "discriminator": [74, 49, 165, 71, 60, 87, 254, 50],
+      "accounts": [
+        {
+          "name": "profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [80, 82, 79, 70, 73, 76, 69]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initialize_program",
+      "discriminator": [176, 107, 205, 168, 24, 157, 175, 103],
+      "accounts": [
+        {
+          "name": "super_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [83, 85, 80, 69, 82]
+              }
+            ]
+          }
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "join_game",
+      "discriminator": [107, 112, 18, 38, 56, 173, 60, 128],
+      "accounts": [
+        {
+          "name": "game",
+          "writable": true
+        },
+        {
+          "name": "player_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [80, 82, 79, 70, 73, 76, 69]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "writable": true,
+          "signer": true,
+          "relations": ["player_profile"]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Game",
+      "discriminator": [27, 90, 166, 125, 74, 100, 121, 18]
+    },
+    {
+      "name": "PlayerProfile",
+      "discriminator": [82, 226, 99, 87, 164, 130, 181, 80]
+    },
+    {
+      "name": "SuperState",
+      "discriminator": [189, 239, 29, 150, 76, 173, 222, 189]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "GameAlreadyStarted",
+      "msg": "The game has already started."
+    },
+    {
+      "code": 6001,
+      "name": "GameIsFull",
+      "msg": "The game is full."
+    },
+    {
+      "code": 6002,
+      "name": "PlayerAlreadyInGame",
+      "msg": "Player is already in the game."
+    },
+    {
+      "code": 6003,
+      "name": "NotEnoughPlayers",
+      "msg": "Not enough players to start the game."
+    },
+    {
+      "code": 6004,
+      "name": "TooManyActiveGames",
+      "msg": "Player reached the maximum number of active games."
+    },
+    {
+      "code": 6005,
+      "name": "InvalidMapSize",
+      "msg": "Invalid map size."
+    },
+    {
+      "code": 6006,
+      "name": "GameIsSinglePlayer",
+      "msg": "The game is single player."
+    }
+  ],
+  "types": [
+    {
+      "name": "Game",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "game_id",
+            "type": "u32"
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "players",
+            "type": {
+              "array": [
+                {
+                  "option": {
+                    "defined": {
+                      "name": "PlayerInfo"
+                    }
+                  }
+                },
+                4
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "GameStatus"
+              }
+            }
+          },
+          {
+            "name": "max_players",
+            "type": "u8"
+          },
+          {
+            "name": "is_multiplayer",
+            "type": "bool"
+          },
+          {
+            "name": "map_size",
+            "type": {
+              "defined": {
+                "name": "MapSize"
+              }
+            }
+          },
+          {
+            "name": "tiles",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "Tile"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "GameStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "NotStarted"
+          },
+          {
+            "name": "Live"
+          },
+          {
+            "name": "Completed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MapSize",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Small"
+          },
+          {
+            "name": "Large"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PlayerInfo",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "pubkey",
+            "type": "pubkey"
+          },
+          {
+            "name": "is_bot",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PlayerProfile",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "experience",
+            "type": "u32"
+          },
+          {
+            "name": "completed_games",
+            "type": "u32"
+          },
+          {
+            "name": "active_games",
+            "type": {
+              "vec": "pubkey"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "SuperState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "game_count",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Tile",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "level",
+            "type": "u8"
+          },
+          {
+            "name": "mutants",
+            "type": "u8"
+          },
+          {
+            "name": "units",
+            "type": {
+              "defined": {
+                "name": "Units"
+              }
+            }
+          },
+          {
+            "name": "buildings",
+            "type": "u8"
+          },
+          {
+            "name": "is_base",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Units",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "infantry",
+            "type": "u8"
+          },
+          {
+            "name": "tank",
+            "type": "u8"
+          },
+          {
+            "name": "plane",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,11 +1,18 @@
 import React from "react";
-import IsometricMap from "./components/IsometricMap";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import HomePage from "./pages/HomePage";
+import Playground from "./pages/Playground";
 
 const App: React.FC = () => {
   return (
-    <div className="App">
-      <IsometricMap />
-    </div>
+    <Router>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/playground" element={<Playground />} />
+        </Routes>
+      </div>
+    </Router>
   );
 };
 
