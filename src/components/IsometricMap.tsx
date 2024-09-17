@@ -1,46 +1,35 @@
 import React, { useEffect, useState, useMemo } from "react";
+import { PublicKey } from "@solana/web3.js";
 import Tile from "./Tile";
 import "./IsometricMap.css";
 import { TILE_DISPLAY_WIDTH, TILE_DISPLAY_HEIGHT } from "./constants";
 import { getAdjacentTiles } from "./helpers";
 import soundManager from "../SoundManager";
 
-type TileData = {
-  row: number;
-  col: number;
-  controlledBy?: number;
-  isBase?: boolean;
-  basePlayer?: number;
-};
+const IsometricMap: React.FC<{ gameData: any; playerPublicKey: PublicKey | null }> = ({
+  gameData,
+  playerPublicKey,
+}) => {
+  const smallMap = [3, 5, 7, 7, 7, 5, 3];
+  const largeMap = [3, 5, 7, 9, 9, 9, 7, 5, 3];
 
-// mockup for tests
-const basePositions = [
-  { row: 0, col: 4, player: 1 },
-  { row: 4, col: 0, player: 2 },
-  { row: 4, col: 8, player: 3 },
-  { row: 8, col: 4, player: 4 },
-];
-
-const IsometricMap: React.FC = () => {
-  const tileCountsPerRow = [3, 5, 7, 9, 9, 9, 7, 5, 3];
+  const tileCountsPerRow = gameData.mapSize.small ? smallMap : largeMap;
   const totalRows = tileCountsPerRow.length;
   const maxTilesInRow = Math.max(...tileCountsPerRow);
 
-  const unitInitialPosition = { row: 4, col: 4 };
-  const [unitPosition, setUnitPosition] = useState<{ row: number; col: number }>(unitInitialPosition);
-
-  useEffect(() => {
-    const initialTileKey = `${unitInitialPosition.row}-${unitInitialPosition.col}`;
-    setControlledTiles(new Set([initialTileKey]));
-  }, []);
-
-  const [controlledTiles, setControlledTiles] = useState<Set<string>>(new Set());
-  const [selectedTile, setSelectedTile] = useState<TileData | null>(null);
+  const [selectedTile, setSelectedTile] = useState<any | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<boolean>(false);
-  const [effectTile, setEffectTile] = useState<TileData | null>(null);
+  const [effectTile, setEffectTile] = useState<any | null>(null);
+  const [controlledTiles, setControlledTiles] = useState<Set<string>>(new Set());
+
+  // useEffect(() => {
+  //   const initialControlledTiles = new Set("");
+  //   setControlledTiles(initialControlledTiles);
+  // }, [gameData]);
 
   const gridMap = useMemo(() => {
-    const map = new Map<string, TileData>();
+    const map = new Map<string, any>();
+    let tileIndex = 0;
     for (let rowIndex = 0; rowIndex < totalRows; rowIndex++) {
       const tilesInRow = tileCountsPerRow[rowIndex];
       const emptySpaces = maxTilesInRow - tilesInRow;
@@ -49,13 +38,27 @@ const IsometricMap: React.FC = () => {
       for (let i = 0; i < tilesInRow; i++) {
         const colIndex = startCol + i;
 
-        const base = basePositions.find((base) => base.row === rowIndex && base.col === colIndex);
+        const tileData = gameData.tiles[tileIndex];
+        const { owner, level, mutants, units, isBase } = tileData;
+        const isControlled = owner.toBase58() === playerPublicKey?.toBase58();
 
-        map.set(`${rowIndex}-${colIndex}`, { row: rowIndex, col: colIndex, isBase: !!base, basePlayer: base?.player });
+        map.set(`${rowIndex}-${colIndex}`, {
+          row: rowIndex,
+          col: colIndex,
+          tileIndex,
+          level,
+          mutants,
+          isBase: isBase || false,
+          basePlayer: isControlled ? owner : undefined,
+          units,
+          controlledBy: owner,
+        });
+
+        tileIndex++;
       }
     }
     return map;
-  }, []);
+  }, [gameData, totalRows, tileCountsPerRow, maxTilesInRow]);
 
   const adjacentTiles = useMemo(() => {
     if (!selectedTile) return [];
@@ -63,13 +66,16 @@ const IsometricMap: React.FC = () => {
   }, [selectedTile, gridMap]);
 
   const handleTileClick = (row: number, col: number) => {
-    if (unitPosition.row === row && unitPosition.col === col) {
-      // Select unit on a tile
-      setSelectedUnit(true);
-      setSelectedTile({ row, col });
-      soundManager.play("select");
+    const tileData = gridMap.get(`${row}-${col}`);
+    if (tileData && tileData.units && tileData.units.infantry > 0) {
+      // Check if the current player owns this unit
+      if (playerPublicKey && tileData.controlledBy.toBase58() === playerPublicKey.toBase58()) {
+        setSelectedUnit(true);
+        setSelectedTile({ row, col });
+        soundManager.play("select");
+      }
     } else if (selectedUnit && isAdjacentTile(row, col)) {
-      // Move unit to adjacent tile
+      // Move unit to adjacent tile if it belongs to the current player
       setSelectedUnit(false);
       setSelectedTile(null);
 
@@ -78,7 +84,6 @@ const IsometricMap: React.FC = () => {
 
       if (isControlled) {
         soundManager.play("walk");
-        setUnitPosition({ row, col });
       } else {
         setEffectTile({ row, col });
         soundManager.play("shots");
@@ -87,8 +92,8 @@ const IsometricMap: React.FC = () => {
         setTimeout(() => {
           setEffectTile(null);
           soundManager.stop("shots");
-          setUnitPosition({ row, col });
 
+          // TESTING: player captured the tile
           const newTileKey = `${row}-${col}`;
           setControlledTiles((prevControlledTiles) => {
             const updatedControlledTiles = new Set(prevControlledTiles);
@@ -128,7 +133,7 @@ const IsometricMap: React.FC = () => {
 
       const isSelected = selectedTile?.row === rowIndex && selectedTile?.col === colIndex;
       const isAdjacent = adjacentTiles.some((tile) => tile.row === rowIndex && tile.col === colIndex);
-      const hasUnit = unitPosition.row === rowIndex && unitPosition.col === colIndex;
+      const hasUnit = tileData?.units?.infantry > 0 || tileData?.units?.tank > 0 || tileData?.units?.plane > 0;
       const hasEffect = effectTile?.row === rowIndex && effectTile?.col === colIndex;
 
       // const controlledBy = tileData?.controlledBy;
@@ -148,6 +153,9 @@ const IsometricMap: React.FC = () => {
           controlledBy={isControlled ? 4 : undefined}
           isBase={isBase}
           basePlayer={basePlayer}
+          units={tileData.units}
+          mutants={tileData.mutants}
+          level={tileData.level}
           onClick={() => handleTileClick(rowIndex, colIndex)}
         />
       );

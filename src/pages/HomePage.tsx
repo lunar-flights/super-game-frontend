@@ -1,50 +1,26 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Keypair, PublicKey } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
 import useProgram from "../hooks/useProgram";
+import useLocalWallet from "../hooks/useLocalWallet";
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const program = useProgram();
-  const connection = program!.provider.connection;
+  const { wallet, getPublicKey } = useLocalWallet();
   const [playerProfile, setPlayerProfile] = useState(null);
-
-  const getBurnerWallet = () => {
-    const localStorageKey = "superPlaygroundKey";
-
-    let storedKey = localStorage.getItem(localStorageKey);
-
-    if (!storedKey) {
-      const keypair = Keypair.generate();
-      storedKey = JSON.stringify(Array.from(keypair.secretKey));
-      localStorage.setItem(localStorageKey, storedKey);
-
-      console.log("New burner wallet generated:", keypair.publicKey.toBase58());
-    } else {
-      console.log(
-        "Found existing burner wallet:",
-        Keypair.fromSecretKey(new Uint8Array(JSON.parse(storedKey))).publicKey.toBase58()
-      );
-    }
-
-    return storedKey;
-  };
 
   const requestAirdrop = async () => {
     try {
-      const storedKey = getBurnerWallet();
-      const secretKey = Uint8Array.from(JSON.parse(storedKey));
-      const playerKeypair = Keypair.fromSecretKey(secretKey);
-      const playerPublicKey = playerKeypair.publicKey;
-
-      if (!program) {
-        console.error("Program not initialized.");
+      const playerPublicKey = getPublicKey();
+      if (!playerPublicKey || !program) {
+        console.error("Program not initialized or wallet not found.");
         return;
       }
-
+      const connection = program!.provider.connection;
       const balance = await connection.getBalance(playerPublicKey);
-      console.log("SOL Balance:", (balance / 1e9 ));
+      console.log("SOL Balance:", balance / 1e9);
       if (balance < 1e9) {
         await connection.requestAirdrop(playerPublicKey, 1e9);
       }
@@ -81,14 +57,9 @@ const HomePage: React.FC = () => {
 
   const checkPlayerProfile = async () => {
     try {
-      const storedKey = getBurnerWallet();
-
-      const secretKey = Uint8Array.from(JSON.parse(storedKey));
-      const playerKeypair = Keypair.fromSecretKey(secretKey);
-      const playerPublicKey = playerKeypair.publicKey;
-
-      if (!program) {
-        console.error("Program not initialized.");
+      const playerPublicKey = getPublicKey();
+      if (!playerPublicKey || !program) {
+        console.error("Program not initialized or wallet not found.");
         return;
       }
 
@@ -104,7 +75,6 @@ const HomePage: React.FC = () => {
         setPlayerProfile(profile);
       } catch (error) {
         console.log("Player profile not found. Creating new profile...");
-
         await createPlayerProfile(playerPublicKey, playerProfilePda);
       }
     } catch (error) {
@@ -119,19 +89,18 @@ const HomePage: React.FC = () => {
         return;
       }
 
-      const storedKey = getBurnerWallet();
-
-      const secretKey = Uint8Array.from(JSON.parse(storedKey));
-      const playerKeypair = Keypair.fromSecretKey(secretKey);
-      const playerPublicKey = playerKeypair.publicKey;
+      const playerPublicKey = getPublicKey();
+      if (!playerPublicKey) {
+        console.error("Wallet not found.");
+        return;
+      }
 
       const [superStatePda] = await PublicKey.findProgramAddressSync([Buffer.from("SUPER")], program.programId);
-
       const [playerProfilePda] = await PublicKey.findProgramAddressSync(
         [Buffer.from("PROFILE"), playerPublicKey.toBuffer()],
         program.programId
       );
-  
+
       // @ts-ignore
       const superState = await program.account.superState.fetch(superStatePda);
       console.log("Super state:", superState);
@@ -141,8 +110,8 @@ const HomePage: React.FC = () => {
         program.programId
       );
 
+      // max_players = 2, is_multiplayer = false, map_size = small
       await program.methods
-        // max_players = 2, is_multiplayer = false, map_size = small
         .createGame(2, false, { small: {} })
         .accounts({
           superState: superStatePda,
@@ -150,10 +119,13 @@ const HomePage: React.FC = () => {
           creator: playerPublicKey,
         })
         .rpc();
-        console.log("Created game:", gamePda.toBase58());
-        // @ts-ignore
-        const game = await program.account.game.fetch(gamePda);
-        console.log("Game:", game);
+
+      console.log("Created game:", gamePda.toBase58());
+      // @ts-ignore
+      const game = await program.account.game.fetch(gamePda);
+      console.log("Game:", game);
+
+      return gamePda.toBase58();
     } catch (error) {
       console.error("Error creating game:", error);
     }
@@ -162,9 +134,11 @@ const HomePage: React.FC = () => {
   const handlePlaygroundClick = async () => {
     await requestAirdrop();
     await checkPlayerProfile();
-    await createPlaygroundGame();
-    // Navigate to the playground page
-    // navigate("/playground");
+    const gameId = await createPlaygroundGame();
+    
+    if (gameId) {
+      navigate(`/playground?game=${gameId}`);
+    }
   };
 
   return (

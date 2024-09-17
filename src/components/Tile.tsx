@@ -14,6 +14,9 @@ interface TileProps {
   controlledBy?: number;
   isBase: boolean;
   basePlayer?: number;
+  mutants: number;
+  units: { infantry: number; tank: number; plane: number };
+  level: number;
   onClick: () => void;
 }
 
@@ -46,6 +49,9 @@ const Tile: React.FC<TileProps> = React.memo(
     controlledBy,
     isBase,
     basePlayer,
+    mutants,
+    units,
+    level,
     onClick,
   }) => {
     const playerColor = controlledBy ? PLAYER_COLORS[controlledBy] : null;
@@ -68,13 +74,22 @@ const Tile: React.FC<TileProps> = React.memo(
         )}
         {hasUnit && (
           <>
-            <p className="units-amount">12</p>
-            <img src="/units/unit.png" alt="Unit" className="unit" />
+            <p className="units-amount">{units.infantry}</p>
+            <img src="/units/infantry-icon.png" alt="Infantry" className="unit" />
           </>
         )}
-        <div className="tile-overlay" style={{ display: "none" }}>
-          {rowIndex}, {colIndex}
-        </div>
+        {mutants > 0 && (
+          <>
+            <p className="units-amount">{mutants}</p>
+            <img src="/units/alien-icon.png" alt="Mutants" className="unit mutants" />
+          </>
+        )}
+
+        {!hasUnit && mutants === 0 && (
+          <div className="tile-overlay">
+            LVL {level}
+          </div>
+        )}
       </div>
     );
   }
