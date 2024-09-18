@@ -5,11 +5,15 @@ import "./IsometricMap.css";
 import { TILE_DISPLAY_WIDTH, TILE_DISPLAY_HEIGHT } from "./constants";
 import { getAdjacentTiles } from "./helpers";
 import soundManager from "../SoundManager";
+import useProgram from "../hooks/useProgram";
 
-const IsometricMap: React.FC<{ gameData: any; playerPublicKey: PublicKey | null }> = ({
+const IsometricMap: React.FC<{ gameData: any; playerPublicKey: PublicKey | null, fetchGameData: () => void }> = ({
   gameData,
   playerPublicKey,
+  fetchGameData
 }) => {
+  const program = useProgram();
+
   const smallMap = [3, 5, 7, 7, 7, 5, 3];
   const largeMap = [3, 5, 7, 9, 9, 9, 7, 5, 3];
 
@@ -65,42 +69,55 @@ const IsometricMap: React.FC<{ gameData: any; playerPublicKey: PublicKey | null 
     return getAdjacentTiles(selectedTile.row, selectedTile.col, gridMap);
   }, [selectedTile, gridMap]);
 
-  const handleTileClick = (row: number, col: number) => {
+  const handleMoveUnit = async (fromTileIndex: number, toTileIndex: number) => {
+    try {
+      if (!program || !playerPublicKey) return;
+
+      const gamePublicKey = new PublicKey(gameData.gamePda);
+      console.log(`Moving units from tile index ${fromTileIndex} to ${toTileIndex}`);
+      await program.methods
+        .moveUnit(fromTileIndex, toTileIndex)
+        .accounts({
+          game: gamePublicKey,
+          player: playerPublicKey,
+        })
+        .rpc();
+
+      fetchGameData();
+    } catch (error) {
+      console.error("Error moving unit:", error);
+    }
+  };
+
+  const handleTileClick = async (row: number, col: number) => {
     const tileData = gridMap.get(`${row}-${col}`);
     if (tileData && tileData.units && tileData.units.infantry > 0) {
-      // Check if the current player owns this unit
-      if (playerPublicKey && tileData.controlledBy.toBase58() === playerPublicKey.toBase58()) {
+      if (true) {
+      // if (playerPublicKey && tileData.controlledBy.toBase58() === playerPublicKey.toBase58()) {
         setSelectedUnit(true);
-        setSelectedTile({ row, col });
+        setSelectedTile(tileData);
         soundManager.play("select");
       }
-    } else if (selectedUnit && isAdjacentTile(row, col)) {
+    } else if (selectedUnit && true ) {//isAdjacentTile(row, col)) {
       // Move unit to adjacent tile if it belongs to the current player
-      setSelectedUnit(false);
-      setSelectedTile(null);
-
+      console.log('Selected tile', selectedTile);
+      const fromTileIndex = selectedTile.tileIndex;
+      const toTileIndex = tileData.tileIndex;
       const tileKey = `${row}-${col}`;
       const isControlled = controlledTiles.has(tileKey);
 
+      setSelectedUnit(false);
+      setSelectedTile(null);
+
       if (isControlled) {
         soundManager.play("walk");
+        handleMoveUnit(fromTileIndex, toTileIndex);
       } else {
         setEffectTile({ row, col });
         soundManager.play("shots");
-
-        // TESTING: Simulate on-chain transaction with 1 second delay
-        setTimeout(() => {
-          setEffectTile(null);
-          soundManager.stop("shots");
-
-          // TESTING: player captured the tile
-          const newTileKey = `${row}-${col}`;
-          setControlledTiles((prevControlledTiles) => {
-            const updatedControlledTiles = new Set(prevControlledTiles);
-            updatedControlledTiles.add(newTileKey);
-            return updatedControlledTiles;
-          });
-        }, 1000);
+        await handleMoveUnit(fromTileIndex, toTileIndex);
+        setEffectTile(null);
+        soundManager.stop("shots");
       }
     } else {
       // Deselect unit and tile

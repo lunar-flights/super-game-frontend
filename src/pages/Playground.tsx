@@ -17,28 +17,29 @@ const Playground: React.FC = () => {
   const searchParams = new URLSearchParams(location.search);
   const gamePda = searchParams.get("game");
 
+  const fetchGameData = async () => {
+    if (!program || !gamePda) {
+      console.error("Program or gamePda not initialized");
+      return;
+    }
+
+    try {
+      const gamePublicKey = new PublicKey(gamePda);
+
+      // @ts-ignore
+      const gameAccount = await program.account.game.fetch(gamePublicKey);
+      gameAccount.gamePda = gamePda;
+      console.log("Fetched game data:", gameAccount);
+      setGameData(gameAccount);
+    } catch (error) {
+      console.error("Error fetching game data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   useEffect(() => {
-    const fetchGameData = async () => {
-      if (!program || !gamePda) {
-        console.error("Program or gamePda not initialized");
-        return;
-      }
-
-      try {
-        const gamePublicKey = new PublicKey(gamePda);
-
-        // @ts-ignore
-        const gameAccount = await program.account.game.fetch(gamePublicKey);
-
-        console.log("Fetched game data:", gameAccount);
-        setGameData(gameAccount);
-      } catch (error) {
-        console.error("Error fetching game data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchGameData();
   }, [program, gamePda]);
 
@@ -52,7 +53,7 @@ const Playground: React.FC = () => {
 
   return (
     <div>
-      <IsometricMap gameData={gameData} playerPublicKey={getPublicKey()} />
+      <IsometricMap gameData={gameData} playerPublicKey={getPublicKey()} fetchGameData={fetchGameData} />
     </div>
   );
 };

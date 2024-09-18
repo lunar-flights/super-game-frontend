@@ -147,41 +147,29 @@
       "args": []
     },
     {
-      "name": "join_game",
-      "discriminator": [107, 112, 18, 38, 56, 173, 60, 128],
+      "name": "move_unit",
+      "discriminator": [145, 126, 36, 232, 217, 195, 127, 23],
       "accounts": [
         {
           "name": "game",
           "writable": true
         },
         {
-          "name": "player_profile",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [80, 82, 79, 70, 73, 76, 69]
-              },
-              {
-                "kind": "account",
-                "path": "player"
-              }
-            ]
-          }
-        },
-        {
           "name": "player",
           "writable": true,
-          "signer": true,
-          "relations": ["player_profile"]
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
+          "signer": true
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "from_tile_index",
+          "type": "u8"
+        },
+        {
+          "name": "to_tile_index",
+          "type": "u8"
+        }
+      ]
     }
   ],
   "accounts": [
