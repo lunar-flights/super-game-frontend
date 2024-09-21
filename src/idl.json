@@ -162,11 +162,19 @@
       ],
       "args": [
         {
-          "name": "from_tile_index",
+          "name": "from_row",
           "type": "u8"
         },
         {
-          "name": "to_tile_index",
+          "name": "from_col",
+          "type": "u8"
+        },
+        {
+          "name": "to_row",
+          "type": "u8"
+        },
+        {
+          "name": "to_col",
           "type": "u8"
         }
       ]
@@ -280,8 +288,12 @@
             "name": "tiles",
             "type": {
               "vec": {
-                "defined": {
-                  "name": "Tile"
+                "vec": {
+                  "option": {
+                    "defined": {
+                      "name": "Tile"
+                    }
+                  }
                 }
               }
             }
@@ -388,14 +400,12 @@
             "type": "u8"
           },
           {
-            "name": "mutants",
-            "type": "u8"
-          },
-          {
             "name": "units",
             "type": {
-              "defined": {
-                "name": "Units"
+              "option": {
+                "defined": {
+                  "name": "Units"
+                }
               }
             }
           },
@@ -411,20 +421,44 @@
       }
     },
     {
+      "name": "UnitType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Infantry"
+          },
+          {
+            "name": "Tank"
+          },
+          {
+            "name": "Plane"
+          },
+          {
+            "name": "Mutants"
+          }
+        ]
+      }
+    },
+    {
       "name": "Units",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "infantry",
-            "type": "u8"
+            "name": "unit_type",
+            "type": {
+              "defined": {
+                "name": "UnitType"
+              }
+            }
           },
           {
-            "name": "tank",
-            "type": "u8"
+            "name": "quantity",
+            "type": "u16"
           },
           {
-            "name": "plane",
+            "name": "stamina",
             "type": "u8"
           }
         ]

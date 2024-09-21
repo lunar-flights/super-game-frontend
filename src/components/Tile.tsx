@@ -9,13 +9,11 @@ interface TileProps {
   yOffset: number;
   isSelected: boolean;
   isAdjacent: boolean;
-  hasUnit: boolean;
   hasEffect: boolean;
   controlledBy?: number;
   isBase: boolean;
   basePlayer?: number;
-  mutants: number;
-  units: { infantry: number; tank: number; plane: number };
+  units?: { quantity: number; stamina: number; unitType: any };
   level: number;
   onClick: () => void;
 }
@@ -38,18 +36,14 @@ function getPlayerColor(playerNumber?: number): string {
 
 const Tile: React.FC<TileProps> = React.memo(
   ({
-    rowIndex,
-    colIndex,
     xOffset,
     yOffset,
     isSelected,
     isAdjacent,
-    hasUnit,
     hasEffect,
     controlledBy,
     isBase,
     basePlayer,
-    mutants,
     units,
     level,
     onClick,
@@ -63,6 +57,18 @@ const Tile: React.FC<TileProps> = React.memo(
     }`;
 
     const showControlOverlay = !isBase && controlledBy;
+    const infantry = units?.unitType.infantry ? units.quantity : 0;
+    const mutants = units?.unitType.mutants ? units.quantity : 0;
+    const stamina = units?.stamina;
+    let unitClass = "";
+    switch (stamina) {
+      case 0:
+        unitClass += " no-stamina";
+        break;
+      case 1:
+        unitClass += " one-stamina";
+        break;
+    }
 
     return (
       <div className={tileClass} style={{ left: `${xOffset}px`, top: `${yOffset}px` }} onClick={onClick}>
@@ -72,9 +78,9 @@ const Tile: React.FC<TileProps> = React.memo(
         {showControlOverlay && playerColor && (
           <div className="tile-control-overlay" style={{ backgroundColor: playerColor }}></div>
         )}
-        {hasUnit && (
+        {infantry > 0 && (
           <>
-            <p className="units-amount">{units.infantry}</p>
+            <p className={`units-amount ${unitClass}`}>{infantry}</p>
             <img src="/units/infantry-icon.png" alt="Infantry" className="unit" />
           </>
         )}
@@ -85,11 +91,7 @@ const Tile: React.FC<TileProps> = React.memo(
           </>
         )}
 
-        {!hasUnit && mutants === 0 && (
-          <div className="tile-overlay">
-            LVL {level}
-          </div>
-        )}
+        {!infantry && mutants === 0 && <div className="tile-overlay">LVL {level}</div>}
       </div>
     );
   }

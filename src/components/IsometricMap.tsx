@@ -7,76 +7,63 @@ import { getAdjacentTiles } from "./helpers";
 import soundManager from "../SoundManager";
 import useProgram from "../hooks/useProgram";
 
-const IsometricMap: React.FC<{ gameData: any; playerPublicKey: PublicKey | null, fetchGameData: () => void }> = ({
+const IsometricMap: React.FC<{ gameData: any; playerPublicKey: PublicKey | null; fetchGameData: () => void }> = ({
   gameData,
   playerPublicKey,
-  fetchGameData
+  fetchGameData,
 }) => {
   const program = useProgram();
-
-  const smallMap = [3, 5, 7, 7, 7, 5, 3];
-  const largeMap = [3, 5, 7, 9, 9, 9, 7, 5, 3];
-
-  const tileCountsPerRow = gameData.mapSize.small ? smallMap : largeMap;
-  const totalRows = tileCountsPerRow.length;
-  const maxTilesInRow = Math.max(...tileCountsPerRow);
-
   const [selectedTile, setSelectedTile] = useState<any | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<boolean>(false);
   const [effectTile, setEffectTile] = useState<any | null>(null);
   const [controlledTiles, setControlledTiles] = useState<Set<string>>(new Set());
 
-  // useEffect(() => {
-  //   const initialControlledTiles = new Set("");
-  //   setControlledTiles(initialControlledTiles);
-  // }, [gameData]);
+  useEffect(() => {
+    const initialControlledTiles = new Set("");
+    setControlledTiles(initialControlledTiles);
+  }, [gameData]);
 
   const gridMap = useMemo(() => {
     const map = new Map<string, any>();
-    let tileIndex = 0;
-    for (let rowIndex = 0; rowIndex < totalRows; rowIndex++) {
-      const tilesInRow = tileCountsPerRow[rowIndex];
-      const emptySpaces = maxTilesInRow - tilesInRow;
-      const startCol = Math.floor(emptySpaces / 2);
 
-      for (let i = 0; i < tilesInRow; i++) {
-        const colIndex = startCol + i;
+    gameData.tiles.forEach((rowTiles: any[], rowIndex: number) => {
+      rowTiles.forEach((tileData: any, colIndex: number) => {
+        if (tileData) {
+          const { owner, level, units, isBase } = tileData;
+          const isControlled = owner.toBase58() === playerPublicKey?.toBase58();
 
-        const tileData = gameData.tiles[tileIndex];
-        const { owner, level, mutants, units, isBase } = tileData;
-        const isControlled = owner.toBase58() === playerPublicKey?.toBase58();
+          map.set(`${rowIndex}-${colIndex}`, {
+            row: rowIndex,
+            col: colIndex,
+            level,
+            isBase: isBase || false,
+            basePlayer: isControlled ? owner : undefined,
+            units,
+            controlledBy: owner,
+          });
+        }
+      });
+    });
 
-        map.set(`${rowIndex}-${colIndex}`, {
-          row: rowIndex,
-          col: colIndex,
-          tileIndex,
-          level,
-          mutants,
-          isBase: isBase || false,
-          basePlayer: isControlled ? owner : undefined,
-          units,
-          controlledBy: owner,
-        });
-
-        tileIndex++;
-      }
-    }
     return map;
-  }, [gameData, totalRows, tileCountsPerRow, maxTilesInRow]);
+  }, [gameData, playerPublicKey]);
 
   const adjacentTiles = useMemo(() => {
-    if (!selectedTile) return [];
-    return getAdjacentTiles(selectedTile.row, selectedTile.col, gridMap);
+    if (!selectedTile || !selectedTile.units) return [];
+
+    const unitStamina = selectedTile.units.stamina;
+
+    return getAdjacentTiles(selectedTile.row, selectedTile.col, gridMap, unitStamina);
   }, [selectedTile, gridMap]);
 
-  const handleMoveUnit = async (fromTileIndex: number, toTileIndex: number) => {
+  const handleMoveUnit = async (fromRow: number, fromCol: number, toRow: number, toCol: number) => {
     try {
       if (!program || !playerPublicKey) return;
 
       const gamePublicKey = new PublicKey(gameData.gamePda);
-      console.log(`Moving units from tile index ${fromTileIndex} to ${toTileIndex}`);
+
       await program.methods
-        .moveUnit(fromTileIndex, toTileIndex)
+        .moveUnit(fromRow, fromCol, toRow, toCol)
         .accounts({
           game: gamePublicKey,
           player: playerPublicKey,
@@ -90,32 +77,32 @@ const IsometricMap: React.FC<{ gameData: any; playerPublicKey: PublicKey | null,
   };
 
   const handleTileClick = async (row: number, col: number) => {
-    const tileData = gridMap.get(`${row}-${col}`);
-    if (tileData && tileData.units && tileData.units.infantry > 0) {
-      if (true) {
-      // if (playerPublicKey && tileData.controlledBy.toBase58() === playerPublicKey.toBase58()) {
+    const tileKey = `${row}-${col}`;
+    const tileData = gridMap.get(tileKey);
+
+    if (tileData && tileData.units && !selectedUnit) {
+      if (playerPublicKey && tileData.controlledBy.toBase58() === playerPublicKey.toBase58()) {
         setSelectedUnit(true);
         setSelectedTile(tileData);
         soundManager.play("select");
       }
-    } else if (selectedUnit && true ) {//isAdjacentTile(row, col)) {
-      // Move unit to adjacent tile if it belongs to the current player
-      console.log('Selected tile', selectedTile);
-      const fromTileIndex = selectedTile.tileIndex;
-      const toTileIndex = tileData.tileIndex;
-      const tileKey = `${row}-${col}`;
-      const isControlled = controlledTiles.has(tileKey);
+    } else if (selectedUnit && isAdjacentTile(row, col)) {
+      const fromRow = selectedTile.row;
+      const fromCol = selectedTile.col;
 
       setSelectedUnit(false);
       setSelectedTile(null);
 
+      const isControlled =
+        tileData && tileData.controlledBy && tileData.controlledBy.toBase58() === playerPublicKey?.toBase58();
+
       if (isControlled) {
         soundManager.play("walk");
-        handleMoveUnit(fromTileIndex, toTileIndex);
+        await handleMoveUnit(fromRow, fromCol, row, col);
       } else {
         setEffectTile({ row, col });
         soundManager.play("shots");
-        await handleMoveUnit(fromTileIndex, toTileIndex);
+        await handleMoveUnit(fromRow, fromCol, row, col);
         setEffectTile(null);
         soundManager.stop("shots");
       }
@@ -131,30 +118,26 @@ const IsometricMap: React.FC<{ gameData: any; playerPublicKey: PublicKey | null,
     return adjacentTiles.some((tile) => tile.row === row && tile.col === col);
   };
 
-  const tiles = [];
-  for (let rowIndex = 0; rowIndex < totalRows; rowIndex++) {
-    const tilesInRow = tileCountsPerRow[rowIndex];
-    const emptySpaces = maxTilesInRow - tilesInRow;
-    const startCol = Math.floor(emptySpaces / 2);
+  const tiles: any[] = [];
 
-    for (let i = 0; i < tilesInRow; i++) {
-      const colIndex = startCol + i;
+  gameData.tiles.forEach((rowTiles: any[], rowIndex: number) => {
+    rowTiles.forEach((tileData: any, colIndex: number) => {
+      if (!tileData) {
+        // Skip empty tiles (for diamond shaped map)
+        return;
+      }
 
       const tileKey = `${rowIndex}-${colIndex}`;
-      const tileData = gridMap.get(tileKey);
-      const isBase = tileData?.isBase || false;
-      const basePlayer = tileData?.basePlayer;
+      const tileInfo = gridMap.get(tileKey);
+      const isBase = tileInfo?.isBase || false;
+      const basePlayer = tileInfo?.basePlayer;
 
       const xOffset = (colIndex - rowIndex) * (TILE_DISPLAY_WIDTH / 2);
       const yOffset = (colIndex + rowIndex) * (TILE_DISPLAY_HEIGHT / 2) - (isBase ? 48 : 0);
 
       const isSelected = selectedTile?.row === rowIndex && selectedTile?.col === colIndex;
       const isAdjacent = adjacentTiles.some((tile) => tile.row === rowIndex && tile.col === colIndex);
-      const hasUnit = tileData?.units?.infantry > 0 || tileData?.units?.tank > 0 || tileData?.units?.plane > 0;
       const hasEffect = effectTile?.row === rowIndex && effectTile?.col === colIndex;
-
-      // const controlledBy = tileData?.controlledBy;
-      const isControlled = controlledTiles.has(tileKey);
 
       tiles.push(
         <Tile
@@ -165,19 +148,17 @@ const IsometricMap: React.FC<{ gameData: any; playerPublicKey: PublicKey | null,
           yOffset={yOffset}
           isSelected={isSelected}
           isAdjacent={isAdjacent}
-          hasUnit={hasUnit}
           hasEffect={hasEffect}
-          controlledBy={isControlled ? 4 : undefined}
+          controlledBy={tileInfo.controlledBy}
           isBase={isBase}
           basePlayer={basePlayer}
-          units={tileData.units}
-          mutants={tileData.mutants}
-          level={tileData.level}
+          units={tileInfo.units}
+          level={tileInfo.level}
           onClick={() => handleTileClick(rowIndex, colIndex)}
         />
       );
-    }
-  }
+    });
+  });
 
   return (
     <div className="grid-wrapper">

@@ -106,7 +106,7 @@
   font-weight: bold;
   font-size: 13px; */
   position: absolute;
-  top: 11%;
+  top: 8%;
   left: 116.5px;
   z-index: 4;
   width: 24px;
@@ -120,8 +120,16 @@
   pointer-events: none;
 }
 
+.units-amount.no-stamina {
+  border-bottom: 4px solid #b7b7b7;
+}
+
+.units-amount.one-stamina {
+  border-bottom: 4px solid #00de18;
+}
+
 .base .units-amount {
-  top: 20%;
+  top: 18%;
 }
 
 .effect {
