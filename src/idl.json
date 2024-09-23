@@ -119,6 +119,22 @@
       "args": []
     },
     {
+      "name": "end_turn",
+      "discriminator": [34, 247, 56, 118, 182, 41, 186, 237],
+      "accounts": [
+        {
+          "name": "game",
+          "writable": true
+        },
+        {
+          "name": "player",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "initialize_program",
       "discriminator": [176, 107, 205, 168, 24, 157, 175, 103],
       "accounts": [
@@ -197,38 +213,28 @@
   "errors": [
     {
       "code": 6000,
-      "name": "GameAlreadyStarted",
-      "msg": "The game has already started."
+      "name": "NotYourTile",
+      "msg": "This is not your tile."
     },
     {
       "code": 6001,
-      "name": "GameIsFull",
-      "msg": "The game is full."
+      "name": "NoUnitsToMove",
+      "msg": "No units to move."
     },
     {
       "code": 6002,
-      "name": "PlayerAlreadyInGame",
-      "msg": "Player is already in the game."
+      "name": "InvalidMovement",
+      "msg": "Destination tile is not adjacent"
     },
     {
       "code": 6003,
-      "name": "NotEnoughPlayers",
-      "msg": "Not enough players to start the game."
+      "name": "NotEnoughStamina",
+      "msg": "Not enough stamina."
     },
     {
       "code": 6004,
-      "name": "TooManyActiveGames",
-      "msg": "Player reached the maximum number of active games."
-    },
-    {
-      "code": 6005,
-      "name": "InvalidMapSize",
-      "msg": "Invalid map size."
-    },
-    {
-      "code": 6006,
-      "name": "GameIsSinglePlayer",
-      "msg": "The game is single player."
+      "name": "InvalidTile",
+      "msg": "Invalid tile."
     }
   ],
   "types": [
@@ -283,6 +289,22 @@
                 "name": "MapSize"
               }
             }
+          },
+          {
+            "name": "round",
+            "type": "u32"
+          },
+          {
+            "name": "current_player_index",
+            "type": "u8"
+          },
+          {
+            "name": "turn_timestamp",
+            "type": "u64"
+          },
+          {
+            "name": "turn_time_limit",
+            "type": "u64"
           },
           {
             "name": "tiles",

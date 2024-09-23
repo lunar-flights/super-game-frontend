@@ -1,0 +1,25 @@
+.playground-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+  }
+  
+  .end-turn-button {
+    z-index: 10;
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 24px;
+    font-size: 18px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  .end-turn-button:hover {
+    background-color: #0056b3;
+  }
+  

@@ -4,6 +4,7 @@ import { PublicKey } from "@solana/web3.js";
 import useLocalWallet from "../hooks/useLocalWallet";
 import useProgram from "../hooks/useProgram";
 import IsometricMap from "../components/IsometricMap";
+import "./Playground.css";
 
 global.Buffer = global.Buffer || require("buffer").Buffer;
 
@@ -38,6 +39,28 @@ const Playground: React.FC = () => {
     }
   };
 
+  const handleEndTurn = async () => {
+    if (!program || !getPublicKey() || !gamePda) {
+      console.error("Program, publicKey, or gameData not initialized");
+      return;
+    }
+
+    try {
+      const gamePublicKey = new PublicKey(gamePda);
+
+      await program.methods
+        .endTurn()
+        .accounts({
+          game: gamePublicKey,
+        })
+        .rpc();
+
+      fetchGameData();
+    } catch (error) {
+      console.error("Error ending turn:", error);
+    }
+  };
+
 
   useEffect(() => {
     fetchGameData();
@@ -52,8 +75,11 @@ const Playground: React.FC = () => {
   }
 
   return (
-    <div>
+    <div className="playground-container">
       <IsometricMap gameData={gameData} playerPublicKey={getPublicKey()} fetchGameData={fetchGameData} />
+      <button className="end-turn-button" onClick={handleEndTurn}>
+        End Turn
+      </button>
     </div>
   );
 };
