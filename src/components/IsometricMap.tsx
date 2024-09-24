@@ -40,6 +40,7 @@ const IsometricMap: React.FC<{ gameData: any; playerPublicKey: PublicKey | null;
             basePlayer: isControlled ? owner : undefined,
             units,
             controlledBy: owner,
+            controlledByIndex: gameData.players.findIndex((item: any) => { return item.pubkey && item.pubkey.toBase58() === owner.toBase58() }),
           });
         }
       });
@@ -150,6 +151,7 @@ const IsometricMap: React.FC<{ gameData: any; playerPublicKey: PublicKey | null;
           isAdjacent={isAdjacent}
           hasEffect={hasEffect}
           controlledBy={tileInfo.controlledBy}
+          controlledByIndex={tileInfo.controlledByIndex}
           isBase={isBase}
           basePlayer={basePlayer}
           units={tileInfo.units}

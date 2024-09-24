@@ -11,6 +11,7 @@ interface TileProps {
   isAdjacent: boolean;
   hasEffect: boolean;
   controlledBy?: number;
+  controlledByIndex?: number;
   isBase: boolean;
   basePlayer?: number;
   units?: { quantity: number; stamina: number; unitType: any };
@@ -21,13 +22,13 @@ interface TileProps {
 // temp utility function to test the map generation
 function getPlayerColor(playerNumber?: number): string {
   switch (playerNumber) {
-    case 1:
+    case 0:
       return "red";
-    case 2:
+    case 1:
       return "orange";
-    case 3:
+    case 2:
       return "green";
-    case 4:
+    case 3:
       return "blue";
     default:
       return "orange";
@@ -42,21 +43,22 @@ const Tile: React.FC<TileProps> = React.memo(
     isAdjacent,
     hasEffect,
     controlledBy,
+    controlledByIndex,
     isBase,
     basePlayer,
     units,
     level,
     onClick,
   }) => {
-    const playerColor = controlledBy ? PLAYER_COLORS[controlledBy] : null;
+    const playerColor = controlledByIndex !== undefined ? PLAYER_COLORS[controlledByIndex] : null;
 
-    const tileImage = isBase ? `/tiles/base-${getPlayerColor(basePlayer)}.png` : `/tiles/ground.png`;
+    const tileImage = isBase ? `/tiles/base-${getPlayerColor(controlledByIndex)}.png` : `/tiles/ground.png`;
 
     const tileClass = `tile-container ${isBase ? "base" : "ground"} ${isSelected ? "selected" : ""} ${
       isAdjacent ? "adjacent" : ""
     }`;
 
-    const showControlOverlay = !isBase && controlledBy;
+    const showControlOverlay = !isBase && controlledByIndex !== undefined;
     const infantry = units?.unitType.infantry ? units.quantity : 0;
     const mutants = units?.unitType.mutants ? units.quantity : 0;
     const stamina = units?.stamina;
