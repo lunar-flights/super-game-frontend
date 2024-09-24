@@ -4,12 +4,14 @@ import { PublicKey } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
 import useProgram from "../hooks/useProgram";
 import useLocalWallet from "../hooks/useLocalWallet";
+import "./HomePage.css";
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const program = useProgram();
   const { wallet, getPublicKey } = useLocalWallet();
-  const [playerProfile, setPlayerProfile] = useState(null);
+  const [playerProfile, setPlayerProfile] = useState<any>(null);
+  const [solBalance, setSolBalance] = useState<number>(0);
 
   const requestAirdrop = async () => {
     try {
@@ -20,7 +22,7 @@ const HomePage: React.FC = () => {
       }
       const connection = program!.provider.connection;
       const balance = await connection.getBalance(playerPublicKey);
-      console.log("SOL Balance:", balance / 1e9);
+      setSolBalance(balance / 1e9);
       if (balance < 1e9) {
         await connection.requestAirdrop(playerPublicKey, 1e9);
       }
@@ -135,17 +137,98 @@ const HomePage: React.FC = () => {
     await requestAirdrop();
     await checkPlayerProfile();
     const gameId = await createPlaygroundGame();
-    
+
     if (gameId) {
       navigate(`/playground?game=${gameId}`);
     }
   };
 
+  const playerPublicKey = getPublicKey();
+
   return (
-    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-      <button onClick={handlePlaygroundClick} style={{ padding: "20px", fontSize: "20px" }}>
-        Playground
-      </button>
+    <div className="homepage-container">
+      <div className="left-section">
+        <div className="player-info">
+          <div className="wallet-info">
+            <div className="wallet-header">
+              <span className="label">Session Wallet</span>
+              <span className="balance">{solBalance.toFixed(2)} SOL</span>
+            </div>
+            <div className="wallet-address">
+              <pre>{playerPublicKey?.toBase58()}</pre>
+              <button onClick={requestAirdrop}>Faucet</button>
+            </div>
+          </div>
+
+          <div className="player-stats">
+            <div className="stat">
+              <span className="stat-label">Games Completed</span>
+              <span className="stat-value">{playerProfile ? playerProfile.gamesCompleted : 0}</span>
+            </div>
+            <div className="stat">
+              <span className="stat-label">XP</span>
+              <span className="stat-value">{playerProfile ? playerProfile.xp : 0}</span>
+            </div>
+          </div>
+
+          <div className="lootbox">
+            <div className="lootbox-text">Complete the tutorial to claim loot box NFT</div>
+            <div className="lootbox-content">
+              <img src="/ui/lootbox.png" alt="Loot Box" />
+              <button disabled>Claim</button>
+            </div>
+          </div>
+        </div>
+
+        <div className="social-buttons">
+          <button className="social-button">
+            <img src="/icons/twitter.png" alt="Twitter" />
+            Follow
+          </button>
+          <button className="social-button">
+            <img src="/icons/discord.png" alt="Discord" />
+            Chat
+          </button>
+          <button className="social-button">
+            <img src="/icons/github.png" alt="GitHub" />
+            Contribute
+          </button>
+        </div>
+      </div>
+
+      <div className="right-section">
+        <div className="banner" onClick={handlePlaygroundClick}>
+          <div className="banner-text">
+            <h2>Tutorial Playground</h2>
+            <p>Play with a bot to learn basics</p>
+          </div>
+          <div className="banner-image">
+            <img src="/ui/robot.png" alt="Bot" />
+          </div>
+        </div>
+
+        <div className="banner" onClick={() => navigate("/multiplayer")}>
+          <div className="banner-text">
+            <h2>Multiplayer</h2>
+            <p>Risk SOL - win SOL</p>
+          </div>
+          <div className="banner-image">
+            <img src="/ui/human.png" alt="Multiplayer" />
+          </div>
+        </div>
+
+        <div className="bottom-links">
+          <div className="link-button">
+            <button onClick={() => navigate("/docs")}>Documentation</button>
+          </div>
+          <div className="link-button">
+            <button onClick={() => window.open("https://youtube.com", "_blank")}>
+              <img src="/icons/youtube.png" alt="YouTube" />
+              Video Guide
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
