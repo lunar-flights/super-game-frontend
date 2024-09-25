@@ -1,7 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { PublicKey } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
+import { Tooltip as ReactTooltip } from "react-tooltip";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faRobot,
+  faFireFlameSimple,
+  faPlane,
+  faCity,
+  faBuildingCircleXmark,
+  faBook,
+} from "@fortawesome/free-solid-svg-icons";
+import { faXTwitter, faGithub} from "@fortawesome/free-brands-svg-icons";
 import useProgram from "../hooks/useProgram";
 import useLocalWallet from "../hooks/useLocalWallet";
 import "./HomePage.css";
@@ -12,6 +23,11 @@ const HomePage: React.FC = () => {
   const { wallet, getPublicKey } = useLocalWallet();
   const [playerProfile, setPlayerProfile] = useState<any>(null);
   const [solBalance, setSolBalance] = useState<number>(0);
+  const [completedChallenges, setCompletedChallenges] = useState<number[]>([]);
+
+  useEffect(() => {
+    requestAirdrop();
+  }, [wallet]);
 
   const requestAirdrop = async () => {
     try {
@@ -143,6 +159,14 @@ const HomePage: React.FC = () => {
     }
   };
 
+  const challenges = [
+    { id: 0, name: "Win in playground mode", icon: faRobot },
+    { id: 1, name: "Build gas plant", icon: faFireFlameSimple },
+    { id: 2, name: "Build a plane", icon: faPlane },
+    { id: 3, name: "Upgrade capital to max level", icon: faCity },
+    { id: 4, name: "Destroy enemy capital", icon: faBuildingCircleXmark },
+  ];
+
   const playerPublicKey = getPublicKey();
 
   return (
@@ -160,46 +184,47 @@ const HomePage: React.FC = () => {
             </div>
           </div>
 
-          <div className="player-stats">
-            <div className="stat">
-              <span className="stat-label">Games Completed</span>
-              <span className="stat-value">{playerProfile ? playerProfile.gamesCompleted : 0}</span>
-            </div>
-            <div className="stat">
-              <span className="stat-label">XP</span>
-              <span className="stat-value">{playerProfile ? playerProfile.xp : 0}</span>
+          <div className="challenges">
+            <hr />
+            <h3>Challenges</h3>
+            <div className="challenge-list">
+              {challenges.map((challenge) => {
+                const isCompleted = completedChallenges.includes(challenge.id);
+                return (
+                  <>
+                    <div
+                      key={challenge.id}
+                      data-tooltip-id={`challenge-${challenge.id}`}
+                      data-tooltip-content={challenge.name}
+                      className={`challenge-badge ${isCompleted ? "unlocked" : "pending"}`}
+                    >
+                      <FontAwesomeIcon icon={challenge.icon} />
+                    </div>
+                    <ReactTooltip place="top" id={`challenge-${challenge.id}`} />
+                  </>
+                );
+              })}
             </div>
           </div>
 
           <div className="lootbox">
-            <div className="lootbox-text">Complete the tutorial to claim loot box NFT</div>
             <div className="lootbox-content">
-              <img src="/ui/lootbox.png" alt="Loot Box" />
-              <button disabled>Claim</button>
+              <div className="lootbox-text">Complete all challenges to claim NFT badge!</div>
+              <div className="badge-container">
+                <div className="shining-container">
+                  <div className="shining-effect"></div>
+                </div>
+                <img src="/ui/badge.png" alt="NFT badge" />
+              </div>
             </div>
           </div>
-        </div>
-
-        <div className="social-buttons">
-          <button className="social-button">
-            <img src="/icons/twitter.png" alt="Twitter" />
-            Follow
-          </button>
-          <button className="social-button">
-            <img src="/icons/discord.png" alt="Discord" />
-            Chat
-          </button>
-          <button className="social-button">
-            <img src="/icons/github.png" alt="GitHub" />
-            Contribute
-          </button>
         </div>
       </div>
 
       <div className="right-section">
-        <div className="banner" onClick={handlePlaygroundClick}>
+        <div className="banner tutorial" onClick={handlePlaygroundClick}>
           <div className="banner-text">
-            <h2>Tutorial Playground</h2>
+            <h2>Playground</h2>
             <p>Play with a bot to learn basics</p>
           </div>
           <div className="banner-image">
@@ -207,10 +232,10 @@ const HomePage: React.FC = () => {
           </div>
         </div>
 
-        <div className="banner" onClick={() => navigate("/multiplayer")}>
+        <div className="banner multiplayer" onClick={() => navigate("/multiplayer")}>
           <div className="banner-text">
             <h2>Multiplayer</h2>
-            <p>Risk SOL - win SOL</p>
+            <p>Bet 0.10 SOL against other players</p>
           </div>
           <div className="banner-image">
             <img src="/ui/human.png" alt="Multiplayer" />
@@ -219,12 +244,19 @@ const HomePage: React.FC = () => {
 
         <div className="bottom-links">
           <div className="link-button">
-            <button onClick={() => navigate("/docs")}>Documentation</button>
+            <button onClick={() => navigate("/docs")}>
+              <FontAwesomeIcon icon={faBook} className="desktop-only" /> Documentation
+            </button>
           </div>
           <div className="link-button">
-            <button onClick={() => window.open("https://youtube.com", "_blank")}>
-              <img src="/icons/youtube.png" alt="YouTube" />
-              Video Guide
+            <button onClick={() => window.open("https://x.com", "_blank")}>
+              <FontAwesomeIcon icon={faXTwitter} /> Follow
+            </button>
+          </div>
+          <div className="link-button">
+            <button onClick={() => window.open("https://github.com/lunar-flights/super-game", "_blank")}>
+              <FontAwesomeIcon icon={faGithub} /> <span className="desktop-only">Contribute</span>
+              <span className="mobile-only">GitHub</span>
             </button>
           </div>
         </div>

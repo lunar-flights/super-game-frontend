@@ -61,7 +61,6 @@ const Playground: React.FC = () => {
     }
   };
 
-
   useEffect(() => {
     fetchGameData();
   }, [program, gamePda]);

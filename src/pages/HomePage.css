@@ -3,7 +3,6 @@
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  /* padding: 20px; */
   background: url("../../public/ui/background.png");
   background-size: cover;
   background-repeat: no-repeat;
@@ -52,13 +51,16 @@
 
 .wallet-address pre {
   flex: 1;
-  background-color: #eaeaea;
+  background-color: #eaeaea55;
   padding: 10px;
   border-radius: 5px;
   overflow-x: auto;
 }
 
 .wallet-address button {
+  border: none;
+  background: #ffffff;
+  border-radius: 5px;
   margin-left: 10px;
   padding: 10px 15px;
   font-size: 14px;
@@ -85,30 +87,126 @@
   color: #333;
 }
 
-.lootbox {
-  text-align: center;
+.left-section hr {
+  border: 1px solid #ffffff30;
 }
 
-.lootbox-text {
+.challenges {
+  margin-bottom: 20px;
+}
+
+.challenges h3 {
   margin-bottom: 10px;
-  font-size: 16px;
+  color: #fff;
+}
+
+.challenge-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.challenge-badge {
+  width: 60px;
+  height: 60px;
+  font-size: 24px;
+  background: #262b40;
+  border: 5px solid #1b2139;
+  color: #7479a4;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 5px;
+  position: relative;
+  cursor: pointer;
+}
+
+.challenge-badge img {
+  width: 30px;
+  height: 30px;
+}
+
+.challenge-badge.unlocked {
+  background: #ffe7b3;
+  border: 5px solid #ffa245;
+  color: #ffa245;
+}
+
+.challenge-badge.unlocked img {
+  filter: none;
+}
+
+.challenge-badge.pending img {
+  filter: grayscale(100%);
+}
+
+.lootbox {
+  margin-top: 20px;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 10px;
 }
 
 .lootbox-content {
   display: flex;
   align-items: center;
-  justify-content: center;
+}
+
+.lootbox-text {
+  flex: 1;
+  color: #fff;
+  font-size: 16px;
 }
 
 .lootbox-content img {
   width: 80px;
   height: 80px;
-  margin-right: 10px;
+  padding: 5px;
+  border-radius: 8px;
+  border: 2px solid #04c6ff;
+  background: #04c6ff2e;
 }
 
-.lootbox-content button {
-  padding: 10px 20px;
-  font-size: 16px;
+.badge-container {
+  position: relative;
+}
+
+.shining-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  pointer-events: none;
+  height: 94px;
+}
+
+.shining-effect {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: shine 2s infinite;
+}
+
+@keyframes shine {
+  from {
+    left: -100%;
+  }
+  to {
+    left: 100%;
+  }
 }
 
 .social-buttons {
@@ -142,9 +240,22 @@
   margin-bottom: 20px;
   border-radius: 10px;
   cursor: pointer;
-  /* overflow: hidden; */
   display: flex;
   align-items: flex-end;
+}
+
+.right-section {
+  margin-top: -150px;
+}
+
+.right-section .banner.tutorial {
+  color: #333;
+  background: #fff;
+}
+
+.right-section .banner.multiplayer {
+  color: #ffffff;
+  background: #000000;
 }
 
 .banner-text {
@@ -161,6 +272,10 @@
   color: #666;
 }
 
+.multiplayer .banner-text p {
+  color: #bcbcbc;
+}
+
 .banner-image {
   position: relative;
 }
@@ -174,8 +289,12 @@
   transform: scaleX(-1);
 }
 
-.right-section .banner:hover {
-  background: #000000d6;
+.right-section .banner.tutorial:hover {
+  opacity: 0.8;
+}
+
+.right-section .banner.multiplayer:hover {
+  opacity: 0.8;
 }
 
 .right-section .banner:hover img {
@@ -196,6 +315,9 @@
   width: 100%;
   padding: 15px;
   font-size: 16px;
+  border: none;
+  background: #fff;
+  border-radius: 5px;
   cursor: pointer;
 }
 
@@ -203,4 +325,28 @@
   width: 20px;
   height: 20px;
   margin-right: 5px;
+}
+
+.mobile-only {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: inline;
+  }
+
+  .desktop-only {
+    display: none;
+  }
+
+  .right-section {
+    margin-top: 0;
+  }
+
+  .challenge-badge {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
 }
