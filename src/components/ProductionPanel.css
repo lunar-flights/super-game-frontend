@@ -1,0 +1,85 @@
+.production-panel {
+  position: fixed;
+  bottom: 120px;
+  right: 20px;
+  color: #fff;
+  padding: 10px;
+  z-index: 10;
+  width: 220px;
+  background-color: #23272f;
+  border-radius: 10px;
+  box-shadow: 0 1px 1px #00000013, 0 2px 2px #00000013, 0 4px 4px #00000013, 0 8px 8px #00000013, 0 16px 16px #00000013;
+  border: 3px solid #ffffff1a;
+}
+
+.production-title {
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.unit-icons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.unit-icon {
+  width: 40px;
+  height: 40px;
+  margin: 0 5px;
+  cursor: pointer;
+}
+
+.unit-icon.disabled {
+  filter: grayscale(100%);
+  pointer-events: none;
+}
+
+.unit-icon.selected {
+  border: 2px solid #00ff00;
+  border-radius: 4px;
+}
+
+.quantity-selector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.quantity-selector input[type="range"] {
+  width: 100%;
+}
+
+.quantity-selector input[type="number"] {
+  width: 60px;
+  text-align: center;
+}
+
+.produce-button {
+  width: 100%;
+  padding: 8px;
+  background-color: #28a745;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.produce-button:hover {
+  background-color: #218838;
+}
+
+.close-button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+}

@@ -4,6 +4,7 @@ import { PublicKey } from "@solana/web3.js";
 import useLocalWallet from "../hooks/useLocalWallet";
 import useProgram from "../hooks/useProgram";
 import IsometricMap from "../components/IsometricMap";
+import ProductionPanel from "../components/ProductionPanel";
 import "./Playground.css";
 
 global.Buffer = global.Buffer || require("buffer").Buffer;
@@ -19,6 +20,7 @@ const Playground: React.FC = () => {
   const { wallet, getPublicKey } = useLocalWallet();
   const [gameData, setGameData] = useState<GameData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedTileForProduction, setSelectedTile] = useState<any | null>(null);
 
   const searchParams = new URLSearchParams(location.search);
   const gamePda = searchParams.get("game");
@@ -66,6 +68,35 @@ const Playground: React.FC = () => {
     }
   };
 
+  const handleRecruitUnits = async (unitType: string, quantity: number) => {
+    if (!program || !getPublicKey() || !gamePda || !selectedTileForProduction) {
+      console.error("Program, publicKey, or gameData not initialized");
+      return;
+    }
+
+    try {
+      const gamePublicKey = new PublicKey(gamePda);
+
+      const unitTypeMap: { [key: string]: any } = {
+        Infantry: { infantry: {} },
+        Tank: { tank: {} },
+        Plane: { plane: {} },
+      };
+
+      await program.methods
+        .recruitUnits(unitTypeMap[unitType], quantity, selectedTileForProduction.row, selectedTileForProduction.col)
+        .accounts({
+          game: gamePublicKey,
+        })
+        .rpc();
+
+      fetchGameData();
+      setSelectedTile(null);
+    } catch (error) {
+      console.error("Error recruiting units:", error);
+    }
+  };
+
   useEffect(() => {
     fetchGameData();
   }, [program, gamePda]);
@@ -78,16 +109,35 @@ const Playground: React.FC = () => {
     return <div>Error loading game data. Please try again later.</div>;
   }
 
+  const playerIndex = gameData.players.findIndex(
+    (p: any) => p && p.pubkey && p.pubkey.toBase58() === getPublicKey()?.toBase58()
+  );
+  const playerInfo = gameData.players[playerIndex];
+  const playerBalance = playerInfo ? playerInfo.balance : 0;
+
   return (
     <div className="playground-container">
-      <IsometricMap gameData={gameData} playerPublicKey={getPublicKey()} fetchGameData={fetchGameData} />
+      <IsometricMap
+        gameData={gameData}
+        playerPublicKey={getPublicKey()}
+        fetchGameData={fetchGameData}
+        onTileSelect={setSelectedTile}
+      />
       <button className="end-turn-button" onClick={handleEndTurn}>
         End Turn
       </button>
       <div className="balance-container">
         <div className="balance-label">Balance:</div>
-        <div className="balance-value">{gameData ? gameData.players[0].balance : 0}</div>
+        <div className="balance-value">{playerBalance}</div>
       </div>
+      {selectedTileForProduction && (
+        <ProductionPanel
+          tileData={selectedTileForProduction}
+          playerBalance={playerBalance}
+          onRecruitUnits={handleRecruitUnits}
+          onClose={() => setSelectedTile(null)}
+        />
+      )}
     </div>
   );
 };

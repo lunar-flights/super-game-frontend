@@ -1,40 +1,44 @@
 .playground-container {
-    position: relative;
-    width: 100%;
-    height: 100vh;
-  }
-  
-  .end-turn-button {
-    z-index: 10;
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 12px 24px;
-    font-size: 18px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-  }
-  
-  .end-turn-button:hover {
-    background-color: #0056b3;
-  }
-  
-  .balance-container {
-    z-index: 10;
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #0000006b;
-    color: #fff;
-    font-weight: bold;
-    min-width: 10%;
-    padding: 10px;
-  }
+  position: relative;
+  width: 100%;
+  height: 100vh;
+}
 
-  .balance-label, .balance-value {
-    display: inline-block;
-  }
+.end-turn-button {
+  z-index: 10;
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  font-size: 18px;
+  background-color: #23272f;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-top-left-radius: 50px;
+  border-top-right-radius: 50px;
+  border: 3px solid #ffffff1a;
+  width: 300px;
+}
+
+.end-turn-button:hover {
+  background-color: #0056b3;
+}
+
+.balance-container {
+  z-index: 10;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #0000006b;
+  color: #fff;
+  font-weight: bold;
+  min-width: 10%;
+  padding: 10px;
+}
+
+.balance-label,
+.balance-value {
+  display: inline-block;
+}

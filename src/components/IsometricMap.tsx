@@ -7,10 +7,11 @@ import { getAdjacentTiles } from "./helpers";
 import soundManager from "../SoundManager";
 import useProgram from "../hooks/useProgram";
 
-const IsometricMap: React.FC<{ gameData: any; playerPublicKey: PublicKey | null; fetchGameData: () => void }> = ({
+const IsometricMap: React.FC<{ gameData: any; playerPublicKey: PublicKey | null; fetchGameData: () => void, onTileSelect: (tileData: any | null) => void; }> = ({
   gameData,
   playerPublicKey,
   fetchGameData,
+  onTileSelect,
 }) => {
   const program = useProgram();
   const [selectedTile, setSelectedTile] = useState<any | null>(null);
@@ -140,6 +141,16 @@ const IsometricMap: React.FC<{ gameData: any; playerPublicKey: PublicKey | null;
       setSelectedUnit(false);
       setSelectedTile(null);
       soundManager.play("select");
+    }
+
+    if (
+      tileData &&
+      tileData.controlledBy &&
+      tileData.controlledBy.toBase58() === playerPublicKey?.toBase58()
+    ) {
+      onTileSelect(tileData);
+    } else {
+      onTileSelect(null);
     }
   };
 
