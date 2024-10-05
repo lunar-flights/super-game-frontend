@@ -35,6 +35,22 @@ function getPlayerColor(playerNumber?: number): string {
   }
 }
 
+function getGroundImage(playerNumber?: number): string {
+  switch (playerNumber) {
+    case 0:
+      return "/tiles/ground-red.png";
+    case 1:
+      return "/tiles/ground-orange.png";
+    case 2:
+      return "/tiles/ground-green.png";
+    case 3:
+      return "/tiles/ground-blue.png";
+    default:
+      return "/tiles/ground.png";
+  }
+
+}
+
 const Tile: React.FC<TileProps> = React.memo(
   ({
     xOffset,
@@ -52,9 +68,9 @@ const Tile: React.FC<TileProps> = React.memo(
   }) => {
     const playerColor = controlledByIndex !== undefined ? PLAYER_COLORS[controlledByIndex] : null;
 
-    const tileImage = isBase ? `/tiles/base-${getPlayerColor(controlledByIndex)}.png` : `/tiles/ground.png`;
+    const tileImage = isBase ? `/tiles/base-${getPlayerColor(controlledByIndex)}.png` : '/tiles/ground.png'; // getGroundImage(controlledByIndex);
 
-    const tileClass = `tile-container ${isBase ? "base" : "ground"} ${isSelected ? "selected" : ""} ${
+    const tileClass = `tile-container ${isBase ? "base" : "ground"} ${isSelected ? "selected adjacent" : ""} ${
       isAdjacent ? "adjacent" : ""
     }`;
 
@@ -83,7 +99,7 @@ const Tile: React.FC<TileProps> = React.memo(
         {infantry > 0 && (
           <>
             <p className={`units-amount ${unitClass}`}>{infantry}</p>
-            <img src="/units/infantry-icon.png" alt="Infantry" className="unit" />
+            <img src="/units/infantry-icon.png" alt="Infantry" className="unit" style={{borderColor: playerColor || 'none'}} />
           </>
         )}
         {mutants > 0 && (

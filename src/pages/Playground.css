@@ -31,14 +31,50 @@
   position: fixed;
   bottom: 20px;
   right: 20px;
-  background: #0000006b;
+  background: #23272f;
+  border: 3px solid #ffffff1a;
   color: #fff;
   font-weight: bold;
-  min-width: 10%;
   padding: 10px;
+  padding-top: 20px;
+  min-width: 220px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
 }
 
 .balance-label,
+.ap-label,
 .balance-value {
   display: inline-block;
+}
+
+.ap-title {
+  position: absolute;
+  top: 5px;
+  left: 10px;
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 300;
+}
+
+.balance-label {
+  padding-left: 5px;
+  border-left: 2px dashed #828282;
+}
+
+.balance-label img {
+  width: 32px;
+}
+
+.balance-value {
+  font-size: 24px;
+  padding-left: 5px;
+}
+
+.ap-label img {
+  width: 64px;
+  margin-right: 10px;
 }

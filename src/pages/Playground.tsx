@@ -127,7 +127,14 @@ const Playground: React.FC = () => {
         End Turn
       </button>
       <div className="balance-container">
-        <div className="balance-label">Balance:</div>
+        <p className="ap-title">Attack points</p>
+        <div className="ap-label">
+          <img src="/ui/bullet-white.png" alt="Bullet" />
+        </div>
+        <div className="ap-label">
+          <img src="/ui/bullet-white.png" alt="Bullet" />
+        </div>
+        <div className="balance-label"><img src="/ui/credits.png" alt="Balance" /></div>
         <div className="balance-value">{playerBalance}</div>
       </div>
       {selectedTileForProduction && (

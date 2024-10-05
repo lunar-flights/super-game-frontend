@@ -7,12 +7,12 @@ import { getAdjacentTiles } from "./helpers";
 import soundManager from "../SoundManager";
 import useProgram from "../hooks/useProgram";
 
-const IsometricMap: React.FC<{ gameData: any; playerPublicKey: PublicKey | null; fetchGameData: () => void, onTileSelect: (tileData: any | null) => void; }> = ({
-  gameData,
-  playerPublicKey,
-  fetchGameData,
-  onTileSelect,
-}) => {
+const IsometricMap: React.FC<{
+  gameData: any;
+  playerPublicKey: PublicKey | null;
+  fetchGameData: () => void;
+  onTileSelect: (tileData: any | null) => void;
+}> = ({ gameData, playerPublicKey, fetchGameData, onTileSelect }) => {
   const program = useProgram();
   const [selectedTile, setSelectedTile] = useState<any | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<boolean>(false);
@@ -115,6 +115,8 @@ const IsometricMap: React.FC<{ gameData: any; playerPublicKey: PublicKey | null;
         setSelectedUnit(true);
         setSelectedTile(tileData);
         soundManager.play("select");
+      } else {
+        setSelectedTile(null);
       }
     } else if (selectedUnit && isAdjacentTile(row, col)) {
       const fromRow = selectedTile.row;
@@ -139,15 +141,16 @@ const IsometricMap: React.FC<{ gameData: any; playerPublicKey: PublicKey | null;
     } else {
       // Deselect unit and tile
       setSelectedUnit(false);
-      setSelectedTile(null);
+      
+      if (playerPublicKey && tileData.controlledBy.toBase58() === playerPublicKey.toBase58()) {
+        setSelectedTile(tileData);
+      } else {
+        setSelectedTile(null);
+      }
       soundManager.play("select");
     }
 
-    if (
-      tileData &&
-      tileData.controlledBy &&
-      tileData.controlledBy.toBase58() === playerPublicKey?.toBase58()
-    ) {
+    if (tileData && tileData.controlledBy && tileData.controlledBy.toBase58() === playerPublicKey?.toBase58()) {
       onTileSelect(tileData);
     } else {
       onTileSelect(null);

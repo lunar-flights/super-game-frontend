@@ -12,7 +12,7 @@ import {
   faBuildingCircleXmark,
   faBook,
 } from "@fortawesome/free-solid-svg-icons";
-import { faXTwitter, faGithub} from "@fortawesome/free-brands-svg-icons";
+import { faXTwitter, faGithub } from "@fortawesome/free-brands-svg-icons";
 import useProgram from "../hooks/useProgram";
 import useLocalWallet from "../hooks/useLocalWallet";
 import "./HomePage.css";
@@ -130,7 +130,7 @@ const HomePage: React.FC = () => {
 
       // max_players = 2, is_multiplayer = false, map_size = small
       await program.methods
-        .createGame(2, false, { small: {} })
+        .createGame(4, false, { small: {} })
         .accounts({
           superState: superStatePda,
           game: gamePda,
@@ -191,9 +191,8 @@ const HomePage: React.FC = () => {
               {challenges.map((challenge) => {
                 const isCompleted = completedChallenges.includes(challenge.id);
                 return (
-                  <>
+                  <div key={challenge.id}>
                     <div
-                      key={challenge.id}
                       data-tooltip-id={`challenge-${challenge.id}`}
                       data-tooltip-content={challenge.name}
                       className={`challenge-badge ${isCompleted ? "unlocked" : "pending"}`}
@@ -201,7 +200,7 @@ const HomePage: React.FC = () => {
                       <FontAwesomeIcon icon={challenge.icon} />
                     </div>
                     <ReactTooltip place="top" id={`challenge-${challenge.id}`} />
-                  </>
+                  </div>
                 );
               })}
             </div>
@@ -249,7 +248,7 @@ const HomePage: React.FC = () => {
             </button>
           </div>
           <div className="link-button">
-            <button onClick={() => window.open("https://x.com", "_blank")}>
+            <button onClick={() => window.open("https://x.com/supergm", "_blank")}>
               <FontAwesomeIcon icon={faXTwitter} /> Follow
             </button>
           </div>
