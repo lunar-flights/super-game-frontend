@@ -26,11 +26,39 @@ const IsometricMap: React.FC<{ gameData: any; playerPublicKey: PublicKey | null;
   const gridMap = useMemo(() => {
     const map = new Map<string, any>();
 
+    const defaultPubkey = new PublicKey(new Uint8Array(32).fill(0));
+
+    const playerPubKeyToIndex: { [key: string]: number } = {};
+    gameData.players.forEach((player: any, index: number) => {
+      if (player && player.pubkey) {
+        const pubkeyStr = player.pubkey.toBase58();
+        playerPubKeyToIndex[pubkeyStr] = index;
+      }
+    });
+
     gameData.tiles.forEach((rowTiles: any[], rowIndex: number) => {
       rowTiles.forEach((tileData: any, colIndex: number) => {
         if (tileData) {
-          const { owner, level, units, isBase } = tileData;
-          const isControlled = owner.toBase58() === playerPublicKey?.toBase58();
+          const { owner: ownerData, level, units, building } = tileData;
+
+          let owner: PublicKey | undefined;
+          let ownerPubKeyStr = "";
+          let controlledByIndex = -1;
+
+          try {
+            owner = new PublicKey(ownerData);
+          } catch (e) {
+            owner = undefined;
+          }
+
+          if (owner && !owner.equals(defaultPubkey)) {
+            ownerPubKeyStr = owner.toBase58();
+
+            controlledByIndex = playerPubKeyToIndex[ownerPubKeyStr] ?? -1;
+          }
+
+          const isControlled = owner && owner.toBase58() === playerPublicKey?.toBase58();
+          const isBase = !!building?.buildingType.base;
 
           map.set(`${rowIndex}-${colIndex}`, {
             row: rowIndex,
@@ -40,7 +68,7 @@ const IsometricMap: React.FC<{ gameData: any; playerPublicKey: PublicKey | null;
             basePlayer: isControlled ? owner : undefined,
             units,
             controlledBy: owner,
-            controlledByIndex: gameData.players.findIndex((item: any) => { return item.pubkey && item.pubkey.toBase58() === owner.toBase58() }),
+            controlledByIndex: controlledByIndex,
           });
         }
       });

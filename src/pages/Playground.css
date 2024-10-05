@@ -23,3 +23,18 @@
     background-color: #0056b3;
   }
   
+  .balance-container {
+    z-index: 10;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #0000006b;
+    color: #fff;
+    font-weight: bold;
+    min-width: 10%;
+    padding: 10px;
+  }
+
+  .balance-label, .balance-value {
+    display: inline-block;
+  }

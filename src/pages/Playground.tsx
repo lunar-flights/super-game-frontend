@@ -8,11 +8,16 @@ import "./Playground.css";
 
 global.Buffer = global.Buffer || require("buffer").Buffer;
 
+interface GameData {
+  players: any; // Player[];
+  tiles: any; //Tile[][];
+}
+
 const Playground: React.FC = () => {
   const location = useLocation();
   const program = useProgram();
   const { wallet, getPublicKey } = useLocalWallet();
-  const [gameData, setGameData] = useState(null);
+  const [gameData, setGameData] = useState<GameData | null>(null);
   const [loading, setLoading] = useState(true);
 
   const searchParams = new URLSearchParams(location.search);
@@ -79,6 +84,10 @@ const Playground: React.FC = () => {
       <button className="end-turn-button" onClick={handleEndTurn}>
         End Turn
       </button>
+      <div className="balance-container">
+        <div className="balance-label">Balance:</div>
+        <div className="balance-value">{gameData ? gameData.players[0].balance : 0}</div>
+      </div>
     </div>
   );
 };
