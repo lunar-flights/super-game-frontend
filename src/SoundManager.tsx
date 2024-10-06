@@ -6,7 +6,7 @@ class SoundManager {
 
   constructor() {
     this.sounds["shots"] = new Howl({
-      src: [process.env.PUBLIC_URL + "/sounds/shots.mp3"],
+      src: [process.env.PUBLIC_URL + "/sounds/shots-2.mp3"],
       preload: true,
       volume: 0.2,
       loop: false,

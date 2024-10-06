@@ -1,5 +1,8 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { PublicKey } from "@solana/web3.js";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 import Tile from "./Tile";
 import "./IsometricMap.css";
 import { TILE_DISPLAY_WIDTH, TILE_DISPLAY_HEIGHT } from "./constants";
@@ -103,12 +106,30 @@ const IsometricMap: React.FC<{
       fetchGameData();
     } catch (error) {
       console.error("Error moving unit:", error);
+
+      let errorMessage = "Unknown error";
+      if (error instanceof Error) errorMessage = error.message;
+      if (errorMessage.includes("NotEnoughAttackPoints")) errorMessage = "Not enough attack points";
+      if (errorMessage.includes("NotEnoughStamina")) errorMessage = "Not enough stamina";
+      if (errorMessage.includes("NotYourTurn")) errorMessage = "Not your turn";
+
+      toast.error(errorMessage);
     }
   };
 
   const handleTileClick = async (row: number, col: number) => {
     const tileKey = `${row}-${col}`;
     const tileData = gridMap.get(tileKey);
+
+    if (tileData && selectedTile) {
+      // if second click on the same tile, deselect
+      if (tileData.row === selectedTile.row && tileData.col === selectedTile.col) {
+        setSelectedTile(null);
+        setSelectedUnit(false);
+        onTileSelect(null);
+        return;
+      }
+    }
 
     if (tileData && tileData.units && !selectedUnit) {
       if (playerPublicKey && tileData.controlledBy.toBase58() === playerPublicKey.toBase58()) {
@@ -136,12 +157,12 @@ const IsometricMap: React.FC<{
         soundManager.play("shots");
         await handleMoveUnit(fromRow, fromCol, row, col);
         setEffectTile(null);
-        soundManager.stop("shots");
+        //soundManager.stop("shots");
       }
     } else {
       // Deselect unit and tile
       setSelectedUnit(false);
-      
+
       if (playerPublicKey && tileData.controlledBy.toBase58() === playerPublicKey.toBase58()) {
         setSelectedTile(tileData);
       } else {
@@ -207,6 +228,7 @@ const IsometricMap: React.FC<{
   return (
     <div className="grid-wrapper">
       <div className="isometric-grid">{tiles}</div>
+      <ToastContainer position="top-center" autoClose={3000} theme="dark" />
     </div>
   );
 };
