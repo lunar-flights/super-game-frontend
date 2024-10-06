@@ -78,3 +78,7 @@
   width: 64px;
   margin-right: 10px;
 }
+
+.ap-label.empty img {
+  opacity: 0.2;
+}

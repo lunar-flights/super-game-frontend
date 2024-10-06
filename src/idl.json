@@ -344,8 +344,8 @@
     },
     {
       "code": 6019,
-      "name": "Overflow",
-      "msg": "Arithmetic overflow"
+      "name": "TooManyUnits",
+      "msg": "Too many units"
     }
   ],
   "types": [
@@ -524,6 +524,14 @@
           {
             "name": "balance",
             "type": "u32"
+          },
+          {
+            "name": "attack_points",
+            "type": "u8"
+          },
+          {
+            "name": "is_alive",
+            "type": "bool"
           }
         ]
       }

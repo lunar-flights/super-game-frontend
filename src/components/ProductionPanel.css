@@ -13,14 +13,16 @@
 }
 
 .production-title {
-  text-align: center;
+  text-align: left;
+  border-bottom: 1px solid #ffffff40;
+  padding-bottom: 5px;
   font-weight: bold;
   margin-bottom: 10px;
 }
 
 .unit-icons {
   display: flex;
-  justify-content: center;
+  justify-content: space-around;
   align-items: center;
   margin-bottom: 10px;
 }
@@ -35,7 +37,7 @@
 }
 
 .unit-icon.disabled {
-  filter: grayscale(100%);
+  filter: opacity(0.4);
   pointer-events: none;
 }
 
@@ -77,7 +79,7 @@
 
 .close-button {
   position: absolute;
-  top: 5px;
+  top: 10px;
   right: 5px;
   background: none;
   border: none;

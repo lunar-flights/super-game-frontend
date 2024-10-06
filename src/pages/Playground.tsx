@@ -114,6 +114,7 @@ const Playground: React.FC = () => {
   );
   const playerInfo = gameData.players[playerIndex];
   const playerBalance = playerInfo ? playerInfo.balance : 0;
+  const attackPoints = playerInfo ? playerInfo.attackPoints : 0;
 
   return (
     <div className="playground-container">
@@ -128,10 +129,10 @@ const Playground: React.FC = () => {
       </button>
       <div className="balance-container">
         <p className="ap-title">Attack points</p>
-        <div className="ap-label">
+        <div className={`ap-label ${attackPoints > 0 ? "" : "empty"}`}>
           <img src="/ui/bullet-white.png" alt="Bullet" />
         </div>
-        <div className="ap-label">
+        <div className={`ap-label ${attackPoints > 1 ? "" : "empty"}`}>
           <img src="/ui/bullet-white.png" alt="Bullet" />
         </div>
         <div className="balance-label"><img src="/ui/credits.png" alt="Balance" /></div>
