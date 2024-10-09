@@ -1,40 +1,28 @@
 import { useMemo } from "react";
-import { Connection, PublicKey } from "@solana/web3.js";
-import { AnchorProvider, Program, Idl, Wallet } from "@coral-xyz/anchor";
+import { Connection } from "@solana/web3.js";
+import { AnchorProvider, Program, Idl } from "@coral-xyz/anchor";
 import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
 import idl from "../idl.json";
-import { Keypair } from "@solana/web3.js";
+import useLocalWallet from "./useLocalWallet";
 
 const useProgram = () => {
+  const { wallet } = useLocalWallet();
+
   const connection = useMemo(() => {
     return new Connection(process.env.REACT_APP_RPC_URL || "https://api.devnet.solana.com", "processed");
   }, []);
 
-  const getBurnerWallet = () => {
-    const localStorageKey = "superPlaygroundKey";
-    const storedKey = localStorage.getItem(localStorageKey);
-    if (storedKey) {
-      const secretKeyArray = JSON.parse(storedKey);
-      const secretKey = Uint8Array.from(secretKeyArray);
-      return Keypair.fromSecretKey(secretKey);
-    }
-    return null;
-  };
-
   const program = useMemo(() => {
-    const keypair = getBurnerWallet();
-
-    if (!keypair) {
+    if (!wallet) {
       console.error("Burner wallet not found.");
       return null;
     }
 
-    const wallet = new NodeWallet(keypair);
-
-    const provider = new AnchorProvider(connection, wallet, { preflightCommitment: "processed" });
+    const nodeWallet = new NodeWallet(wallet);
+    const provider = new AnchorProvider(connection, nodeWallet, { preflightCommitment: "processed" });
 
     return new Program(idl as Idl, provider);
-  }, [connection]);
+  }, [connection, wallet]);
 
   return program;
 };
