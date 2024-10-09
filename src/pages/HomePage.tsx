@@ -26,6 +26,7 @@ const HomePage: React.FC = () => {
   const [playerProfile, setPlayerProfile] = useState<any>(null);
   const [solBalance, setSolBalance] = useState<number>(0);
   const [completedChallenges, setCompletedChallenges] = useState<number[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     requestAirdrop();
@@ -171,12 +172,20 @@ const HomePage: React.FC = () => {
   };
 
   const handlePlaygroundClick = async () => {
+    if (isLoading) {
+      return;
+    }
+    setIsLoading(true);
+    toast.info("Creating a new playground game...");
     await requestAirdrop();
     await checkPlayerProfile();
     const gameId = await createPlaygroundGame();
+    setIsLoading(false);
 
     if (gameId) {
       navigate(`/playground?game=${gameId}`);
+    } else {
+      toast.error("Failed to create game. Please try again.");
     }
   };
 
@@ -192,7 +201,7 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="homepage-container">
-      <ToastContainer autoClose={2500} />
+      <ToastContainer autoClose={2500} theme="dark" />
       <div className="left-section">
         <div className="player-info">
           <div className="wallet-info">
@@ -251,7 +260,7 @@ const HomePage: React.FC = () => {
       </div>
 
       <div className="right-section">
-        <div className="banner tutorial" onClick={handlePlaygroundClick}>
+        <div className={`banner tutorial ${isLoading ? "creating-game" : ""}`} onClick={handlePlaygroundClick}>
           <div className="banner-text">
             <h2>Playground</h2>
             <p>Play with a bot to learn basics</p>

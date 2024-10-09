@@ -264,6 +264,10 @@
   background: #fff;
 }
 
+.right-section .banner.creating-game {
+  filter: grayscale(100%) blur(1px);
+}
+
 .right-section .banner.multiplayer {
   color: #ffffff;
   background: #000000;

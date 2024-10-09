@@ -103,6 +103,10 @@ const Playground: React.FC = () => {
   };
 
   useEffect(() => {
+    if (!gamePda) {
+      navigate("/");
+      return;
+    }
     fetchGameData();
   }, [program, gamePda]);
 
