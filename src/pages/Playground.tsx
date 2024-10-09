@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { PublicKey } from "@solana/web3.js";
 import useLocalWallet from "../hooks/useLocalWallet";
 import useProgram from "../hooks/useProgram";
 import IsometricMap from "../components/IsometricMap";
 import ProductionPanel from "../components/ProductionPanel";
+import GameOverModal from "../components/GameOverModal";
 import "./Playground.css";
 
 global.Buffer = global.Buffer || require("buffer").Buffer;
@@ -12,15 +13,19 @@ global.Buffer = global.Buffer || require("buffer").Buffer;
 interface GameData {
   players: any; // Player[];
   tiles: any; //Tile[][];
+  status: any;
+  winner: any;
 }
 
 const Playground: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const program = useProgram();
   const { wallet, getPublicKey } = useLocalWallet();
   const [gameData, setGameData] = useState<GameData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedTileForProduction, setSelectedTile] = useState<any | null>(null);
+  const [isGameOverModalOpen, setIsGameOverModalOpen] = useState(false);
 
   const searchParams = new URLSearchParams(location.search);
   const gamePda = searchParams.get("game");
@@ -101,6 +106,33 @@ const Playground: React.FC = () => {
     fetchGameData();
   }, [program, gamePda]);
 
+  const getWinnerInfo = () => {
+    if (!gameData) return null;
+
+    if (gameData.winner) {
+      return gameData.players.find((p: any) => p && p.pubkey && p.pubkey.toBase58() === gameData.winner.toBase58());
+    }
+
+    const alivePlayers = gameData.players.filter((p: any) => p && p.isAlive);
+
+    if (alivePlayers.length === 1) {
+      return alivePlayers[0];
+    }
+
+    return null;
+  };
+
+  const handleModalClose = () => {
+    setIsGameOverModalOpen(false);
+    navigate("/");
+  };
+
+  useEffect(() => {
+    if (gameData && gameData.status && gameData.status.completed) {
+      setIsGameOverModalOpen(true);
+    }
+  }, [gameData]);
+
   if (loading) {
     return <div>Loading game data...</div>;
   }
@@ -135,7 +167,9 @@ const Playground: React.FC = () => {
         <div className={`ap-label ${attackPoints > 1 ? "" : "empty"}`}>
           <img src="/ui/bullet-white.png" alt="Bullet" />
         </div>
-        <div className="balance-label"><img src="/ui/credits.png" alt="Balance" /></div>
+        <div className="balance-label">
+          <img src="/ui/credits.png" alt="Balance" />
+        </div>
         <div className="balance-value">{playerBalance}</div>
       </div>
       {selectedTileForProduction && (
@@ -146,6 +180,7 @@ const Playground: React.FC = () => {
           onClose={() => setSelectedTile(null)}
         />
       )}
+      {isGameOverModalOpen && <GameOverModal winner={getWinnerInfo()} onClose={handleModalClose} />}
     </div>
   );
 };

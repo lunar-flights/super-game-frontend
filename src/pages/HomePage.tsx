@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { PublicKey } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
 import { Tooltip as ReactTooltip } from "react-tooltip";
+import { ToastContainer, toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faRobot,
@@ -11,6 +12,7 @@ import {
   faCity,
   faBuildingCircleXmark,
   faBook,
+  faInfoCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { faXTwitter, faGithub } from "@fortawesome/free-brands-svg-icons";
 import useProgram from "../hooks/useProgram";
@@ -29,6 +31,23 @@ const HomePage: React.FC = () => {
     requestAirdrop();
   }, [wallet]);
 
+  const checkBalance = async () => {
+    const playerPublicKey = getPublicKey();
+    if (!playerPublicKey || !program) {
+      console.error("Program not initialized or wallet not found.");
+      return 0;
+    }
+    try {
+      const connection = program!.provider.connection;
+      const balance = await connection.getBalance(playerPublicKey);
+      setSolBalance(balance / 1e9);
+      return balance;
+    } catch (error) {
+      console.error("Error fetching balance:", error);
+      return 0;
+    }
+  };
+
   const requestAirdrop = async () => {
     try {
       const playerPublicKey = getPublicKey();
@@ -36,14 +55,15 @@ const HomePage: React.FC = () => {
         console.error("Program not initialized or wallet not found.");
         return;
       }
-      const connection = program!.provider.connection;
-      const balance = await connection.getBalance(playerPublicKey);
-      setSolBalance(balance / 1e9);
-      if (balance < 1e9) {
+      const balance = await checkBalance();
+      if (balance < 1e9 * 0.1) {
+        const connection = program!.provider.connection;
         await connection.requestAirdrop(playerPublicKey, 1e9);
+        await checkBalance();
       }
     } catch (error) {
       console.error("Error fetching balance:", error);
+      toast.error("Failed to request airdrop. Please use faucet.");
     }
   };
 
@@ -70,6 +90,7 @@ const HomePage: React.FC = () => {
       console.log("Player profile:", profile);
     } catch (error) {
       console.error("Error creating player profile:", error);
+      toast.error("Failed to create player profile.");
     }
   };
 
@@ -160,7 +181,7 @@ const HomePage: React.FC = () => {
   };
 
   const challenges = [
-    { id: 0, name: "Win in playground mode", icon: faRobot },
+    { id: 0, name: "Defeat bots", icon: faRobot },
     { id: 1, name: "Build gas plant", icon: faFireFlameSimple },
     { id: 2, name: "Build a plane", icon: faPlane },
     { id: 3, name: "Upgrade capital to max level", icon: faCity },
@@ -171,6 +192,7 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="homepage-container">
+      <ToastContainer autoClose={2500} />
       <div className="left-section">
         <div className="player-info">
           <div className="wallet-info">
@@ -180,10 +202,18 @@ const HomePage: React.FC = () => {
             </div>
             <div className="wallet-address">
               <pre>{playerPublicKey?.toBase58()}</pre>
-              <button onClick={requestAirdrop}>Faucet</button>
+              <button onClick={requestAirdrop}>Airdrop</button>
             </div>
           </div>
-
+          <div className="faucet-link">
+            <p>
+              <FontAwesomeIcon icon={faInfoCircle} /> Request airdrop or{" "}
+              <a href={process.env.REACT_APP_FAUCET_URL} target="_blank" rel="noreferrer noopener">
+                use faucet
+              </a>
+              .
+            </p>
+          </div>
           <div className="challenges">
             <hr />
             <h3>Challenges</h3>
@@ -231,7 +261,7 @@ const HomePage: React.FC = () => {
           </div>
         </div>
 
-        <div className="banner multiplayer" onClick={() => navigate("/multiplayer")}>
+        <div className="banner multiplayer" onClick={() => toast.info("Soon! Check playground.")}>
           <div className="banner-text">
             <h2>Multiplayer</h2>
             <p>Bet 0.10 SOL against other players</p>
@@ -243,7 +273,9 @@ const HomePage: React.FC = () => {
 
         <div className="bottom-links">
           <div className="link-button">
-            <button onClick={() => navigate("/docs")}>
+            <button
+              onClick={() => window.open("https://github.com/lunar-flights/super-game/blob/main/README.md", "_blank")}
+            >
               <FontAwesomeIcon icon={faBook} className="desktop-only" /> Documentation
             </button>
           </div>

@@ -1,13 +1,13 @@
-import { useMemo } from 'react';
-import { Connection, PublicKey } from '@solana/web3.js';
-import { AnchorProvider, Program, Idl, Wallet } from '@coral-xyz/anchor';
+import { useMemo } from "react";
+import { Connection, PublicKey } from "@solana/web3.js";
+import { AnchorProvider, Program, Idl, Wallet } from "@coral-xyz/anchor";
 import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
-import idl from '../idl.json';
-import { Keypair } from '@solana/web3.js';
+import idl from "../idl.json";
+import { Keypair } from "@solana/web3.js";
 
 const useProgram = () => {
   const connection = useMemo(() => {
-    return new Connection("http://127.0.0.1:8899", "processed");
+    return new Connection(process.env.REACT_APP_RPC_URL || "https://api.devnet.solana.com", "processed");
   }, []);
 
   const getBurnerWallet = () => {
@@ -31,7 +31,7 @@ const useProgram = () => {
 
     const wallet = new NodeWallet(keypair);
 
-    const provider = new AnchorProvider(connection, wallet, { preflightCommitment: 'processed' });
+    const provider = new AnchorProvider(connection, wallet, { preflightCommitment: "processed" });
 
     return new Program(idl as Idl, provider);
   }, [connection]);

@@ -421,6 +421,12 @@
             }
           },
           {
+            "name": "winner",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
             "name": "status",
             "type": {
               "defined": {

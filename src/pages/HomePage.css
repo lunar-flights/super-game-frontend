@@ -25,7 +25,7 @@
 }
 
 .wallet-info {
-  margin-bottom: 20px;
+  /* margin-bottom: 20px; */
 }
 
 .wallet-header {
@@ -65,6 +65,17 @@
   padding: 10px 15px;
   font-size: 14px;
   cursor: pointer;
+}
+
+.faucet-link p {
+  margin: 0;
+  padding: 0;
+  color: #fff;
+}
+
+.faucet-link p a {
+  color: #fff;
+  text-decoration: underline;
 }
 
 .player-stats {
