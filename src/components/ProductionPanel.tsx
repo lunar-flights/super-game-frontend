@@ -1,16 +1,18 @@
 import React, { useState, useMemo } from "react";
-import './ProductionPanel.css';
+import { toast } from "react-toastify";
+import "./ProductionPanel.css";
 
 interface ProductionPanelProps {
   tileData: any;
   playerBalance: number;
-  onRecruitUnits: (unitType: string, quantity: number) => void;
+  onRecruitUnits: (unitType: string, quantity: number) => Promise<void>;
   onClose: () => void;
 }
 
 const ProductionPanel: React.FC<ProductionPanelProps> = ({ tileData, playerBalance, onRecruitUnits, onClose }) => {
   const [selectedUnitType, setSelectedUnitType] = useState<string | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
+  const [isProducing, setIsProducing] = useState<boolean>(false);
 
   // Infantry can be recruited on any tile controlled by the player
   // Tank and Plane can be recruited only on tiles with tank and plane factories
@@ -56,9 +58,25 @@ const ProductionPanel: React.FC<ProductionPanelProps> = ({ tileData, playerBalan
     setQuantity(newValue);
   };
 
-  const handleProduce = () => {
+  const handleProduce = async () => {
     if (selectedUnitType && quantity > 0) {
-      onRecruitUnits(selectedUnitType, quantity);
+      const unitCost = unitCosts[selectedUnitType];
+      const totalCost = unitCost * quantity;
+
+      if (playerBalance < totalCost) {
+        toast.error("Not enough balance to produce units");
+        return;
+      }
+
+      setIsProducing(true);
+      try {
+        await onRecruitUnits(selectedUnitType, quantity);
+      } catch (error) {
+        console.error("Error producing units:", error);
+        toast.error("Error producing units.");
+      } finally {
+        setIsProducing(false);
+      }
     }
   };
 
@@ -69,20 +87,26 @@ const ProductionPanel: React.FC<ProductionPanelProps> = ({ tileData, playerBalan
         <img
           src="/units/infantry-icon.png"
           alt="Infantry"
-          className={`unit-icon ${availableUnitTypes.Infantry ? '' : 'disabled'} ${selectedUnitType === 'Infantry' ? 'selected' : ''}`}
-          onClick={() => handleUnitTypeSelect('Infantry')}
+          className={`unit-icon ${availableUnitTypes.Infantry ? "" : "disabled"} ${
+            selectedUnitType === "Infantry" ? "selected" : ""
+          }`}
+          onClick={() => handleUnitTypeSelect("Infantry")}
         />
         <img
           src="/units/tank-icon.png"
           alt="Tank"
-          className={`unit-icon ${availableUnitTypes.Tank ? '' : 'disabled'} ${selectedUnitType === 'Tank' ? 'selected' : ''}`}
-          onClick={() => handleUnitTypeSelect('Tank')}
+          className={`unit-icon ${availableUnitTypes.Tank ? "" : "disabled"} ${
+            selectedUnitType === "Tank" ? "selected" : ""
+          }`}
+          onClick={() => handleUnitTypeSelect("Tank")}
         />
         <img
           src="/units/plane-icon.png"
           alt="Plane"
-          className={`unit-icon ${availableUnitTypes.Plane ? '' : 'disabled'} ${selectedUnitType === 'Plane' ? 'selected' : ''}`}
-          onClick={() => handleUnitTypeSelect('Plane')}
+          className={`unit-icon ${availableUnitTypes.Plane ? "" : "disabled"} ${
+            selectedUnitType === "Plane" ? "selected" : ""
+          }`}
+          onClick={() => handleUnitTypeSelect("Plane")}
         />
       </div>
       {selectedUnitType && (
@@ -103,10 +127,20 @@ const ProductionPanel: React.FC<ProductionPanelProps> = ({ tileData, playerBalan
               onChange={(e) => handleQuantityChange(parseInt(e.target.value))}
             />
           </div>
-          <button className="produce-button" onClick={handleProduce}>PRODUCE</button>
+          <button className="produce-button" onClick={handleProduce} disabled={isProducing}>
+            {isProducing ? (
+              <>
+                <span className="spinner"></span>
+              </>
+            ) : (
+              "PRODUCE"
+            )}
+          </button>
         </>
       )}
-      <button className="close-button" onClick={onClose}>X</button>
+      <button className="close-button" onClick={onClose}>
+        X
+      </button>
     </div>
   );
 };

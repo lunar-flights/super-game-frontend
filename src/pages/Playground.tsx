@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { PublicKey } from "@solana/web3.js";
+import { toast } from "react-toastify";
 import useLocalWallet from "../hooks/useLocalWallet";
 import useProgram from "../hooks/useProgram";
 import IsometricMap from "../components/IsometricMap";
@@ -26,6 +27,7 @@ const Playground: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedTileForProduction, setSelectedTile] = useState<any | null>(null);
   const [isGameOverModalOpen, setIsGameOverModalOpen] = useState(false);
+  const [isEndingTurn, setIsEndingTurn] = useState(false);
 
   const searchParams = new URLSearchParams(location.search);
   const gamePda = searchParams.get("game");
@@ -56,7 +58,10 @@ const Playground: React.FC = () => {
       console.error("Program, publicKey, or gameData not initialized");
       return;
     }
-
+    if (isEndingTurn) {
+      return;
+    }
+    setIsEndingTurn(true);
     try {
       const gamePublicKey = new PublicKey(gamePda);
 
@@ -70,6 +75,9 @@ const Playground: React.FC = () => {
       fetchGameData();
     } catch (error) {
       console.error("Error ending turn:", error);
+      toast.error("Error ending turn.");
+    } finally {
+      setIsEndingTurn(false);
     }
   };
 
@@ -161,7 +169,13 @@ const Playground: React.FC = () => {
         onTileSelect={setSelectedTile}
       />
       <button className="end-turn-button" onClick={handleEndTurn}>
-        End Turn
+        {isEndingTurn ? (
+          <>
+            <span className="spinner"></span>
+          </>
+        ) : (
+          "End Turn"
+        )}
       </button>
       <div className="balance-container">
         <p className="ap-title">Attack points</p>

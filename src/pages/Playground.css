@@ -120,3 +120,21 @@
 .modal-content button:hover {
   background-color: #0097a7;
 }
+
+.spinner {
+  margin-right: 8px;
+  border: 2px solid #fff;
+  border-top: 2px solid #00bcd4;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
