@@ -107,6 +107,9 @@ const Playground: React.FC = () => {
       setSelectedTile(null);
     } catch (error) {
       console.error("Error recruiting units:", error);
+      if (error instanceof Error && error.message.includes("TileNotOwned")) {
+        toast.error("You don't control this tile");
+      }
     }
   };
 
