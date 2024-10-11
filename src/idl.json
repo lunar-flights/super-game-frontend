@@ -8,6 +8,39 @@
   },
   "instructions": [
     {
+      "name": "build_construction",
+      "discriminator": [84, 21, 94, 77, 171, 135, 121, 248],
+      "accounts": [
+        {
+          "name": "game",
+          "writable": true
+        },
+        {
+          "name": "player",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "row",
+          "type": "u8"
+        },
+        {
+          "name": "col",
+          "type": "u8"
+        },
+        {
+          "name": "building_type",
+          "type": {
+            "defined": {
+              "name": "BuildingType"
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "create_game",
       "discriminator": [124, 69, 75, 66, 184, 220, 72, 206],
       "accounts": [
@@ -249,103 +282,43 @@
   "errors": [
     {
       "code": 6000,
-      "name": "GameAlreadyStarted",
-      "msg": "The game has already started"
+      "name": "NotYourTile",
+      "msg": "This is not your tile"
     },
     {
       "code": 6001,
-      "name": "GameIsFull",
-      "msg": "The game is full"
+      "name": "NoUnitsToMove",
+      "msg": "No units to move"
     },
     {
       "code": 6002,
-      "name": "PlayerAlreadyInGame",
-      "msg": "Player is already in the game"
+      "name": "InvalidMovement",
+      "msg": "Destination tile is not adjacent"
     },
     {
       "code": 6003,
-      "name": "NotEnoughPlayers",
-      "msg": "Not enough players to start the game"
+      "name": "NotEnoughStamina",
+      "msg": "Not enough stamina"
     },
     {
       "code": 6004,
-      "name": "TooManyActiveGames",
-      "msg": "Player reached the maximum number of active games"
+      "name": "InvalidTile",
+      "msg": "Invalid tile"
     },
     {
       "code": 6005,
-      "name": "InvalidMapSize",
-      "msg": "Invalid map size"
+      "name": "TileOccupiedByOtherUnitType",
+      "msg": "Tile is occupied by other unit"
     },
     {
       "code": 6006,
-      "name": "GameIsSinglePlayer",
-      "msg": "The game is single player"
+      "name": "TileOccupiedByEnemy",
+      "msg": "Tile is occupied by enemy unit"
     },
     {
       "code": 6007,
-      "name": "InvalidPlayer",
-      "msg": "Invalid player"
-    },
-    {
-      "code": 6008,
-      "name": "NotYourTurn",
-      "msg": "Not your turn"
-    },
-    {
-      "code": 6009,
-      "name": "OutOfBounds",
-      "msg": "Destination is out of map bounds"
-    },
-    {
-      "code": 6010,
-      "name": "BotKeyNotFound",
-      "msg": "Bot key not found"
-    },
-    {
-      "code": 6011,
-      "name": "InvalidCoordinates",
-      "msg": "Invalid coordinates"
-    },
-    {
-      "code": 6012,
-      "name": "InvalidTile",
-      "msg": "Tile does not exist"
-    },
-    {
-      "code": 6013,
-      "name": "TileNotOwned",
-      "msg": "You do not own this tile"
-    },
-    {
-      "code": 6014,
-      "name": "DifferentUnitTypeOnTile",
-      "msg": "Different unit type already present on the tile"
-    },
-    {
-      "code": 6015,
-      "name": "RequiresTankFactory",
-      "msg": "A Tank Factory is required to recruit tanks"
-    },
-    {
-      "code": 6016,
-      "name": "RequiresPlaneFactory",
-      "msg": "A Plane Factory is required to recruit planes"
-    },
-    {
-      "code": 6017,
-      "name": "InvalidUnitType",
-      "msg": "Invalid unit type"
-    },
-    {
-      "code": 6018,
-      "name": "InsufficientFunds",
-      "msg": "Insufficient funds"
-    },
-    {
-      "code": 6019,
-      "name": "TooManyUnits",
-      "msg": "Too many units"
+      "name": "NotEnoughAttackPoints",
+      "msg": "No attack points"
     }
   ],
   "types": [
