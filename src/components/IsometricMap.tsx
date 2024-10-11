@@ -71,6 +71,7 @@ const IsometricMap: React.FC<{
             isBase: isBase || false,
             basePlayer: isControlled ? owner : undefined,
             units,
+            building,
             controlledBy: owner,
             controlledByIndex: controlledByIndex,
           });
@@ -219,6 +220,10 @@ const IsometricMap: React.FC<{
           basePlayer={basePlayer}
           units={tileInfo.units}
           level={tileInfo.level}
+          selectedUnit={selectedUnit}
+          selectedTile={selectedTile}
+          playerPublicKey={playerPublicKey}
+          building={tileInfo.building}
           onClick={() => handleTileClick(rowIndex, colIndex)}
         />
       );
