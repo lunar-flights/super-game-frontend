@@ -25,7 +25,7 @@ const Playground: React.FC = () => {
   const { wallet, getPublicKey } = useLocalWallet();
   const [gameData, setGameData] = useState<GameData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedTileForProduction, setSelectedTile] = useState<any | null>(null);
+  const [selectedTile, setSelectedTile] = useState<any | null>(null);
   const [isGameOverModalOpen, setIsGameOverModalOpen] = useState(false);
   const [isEndingTurn, setIsEndingTurn] = useState(false);
 
@@ -82,7 +82,7 @@ const Playground: React.FC = () => {
   };
 
   const handleRecruitUnits = async (unitType: string, quantity: number) => {
-    if (!program || !getPublicKey() || !gamePda || !selectedTileForProduction) {
+    if (!program || !getPublicKey() || !gamePda || !selectedTile) {
       console.error("Program, publicKey, or gameData not initialized");
       return;
     }
@@ -97,7 +97,7 @@ const Playground: React.FC = () => {
       };
 
       await program.methods
-        .recruitUnits(unitTypeMap[unitType], quantity, selectedTileForProduction.row, selectedTileForProduction.col)
+        .recruitUnits(unitTypeMap[unitType], quantity, selectedTile.row, selectedTile.col)
         .accounts({
           game: gamePublicKey,
         })
@@ -110,6 +110,31 @@ const Playground: React.FC = () => {
       if (error instanceof Error && error.message.includes("TileNotOwned")) {
         toast.error("You don't control this tile");
       }
+    }
+  };
+
+  const handleUpgradeBase = async () => {
+    try {
+      if (!program || !getPublicKey() || !selectedTile || !gamePda) return;
+
+      const gamePublicKey = new PublicKey(gamePda);
+
+      await program.methods
+        .buildConstruction(selectedTile.row, selectedTile.col, { base: {} })
+        .accounts({
+          game: gamePublicKey,
+        })
+        .rpc();
+
+      fetchGameData();
+      toast.success("Capital upgraded successfully.");
+    } catch (error) {
+      console.error("Error upgrading capital:", error);
+      let errorMessage = "Unknown error";
+      if (error instanceof Error) errorMessage = error.message;
+      if (errorMessage.includes("MaxLevelReached")) errorMessage = "Capital is already at max level.";
+      if (errorMessage.includes("NotEnoughFunds")) errorMessage = "Not enough funds to upgrade capital.";
+      toast.error(errorMessage);
     }
   };
 
@@ -193,11 +218,12 @@ const Playground: React.FC = () => {
         </div>
         <div className="balance-value">{playerBalance}</div>
       </div>
-      {selectedTileForProduction && (
+      {selectedTile && (
         <ProductionPanel
-          tileData={selectedTileForProduction}
+          tileData={selectedTile}
           playerBalance={playerBalance}
           onRecruitUnits={handleRecruitUnits}
+          onUpgradeBase={handleUpgradeBase}
           onClose={() => setSelectedTile(null)}
         />
       )}
