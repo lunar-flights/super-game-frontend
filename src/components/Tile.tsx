@@ -40,21 +40,6 @@ function getPlayerColor(playerNumber?: number): string {
   }
 }
 
-function getGroundImage(playerNumber?: number): string {
-  switch (playerNumber) {
-    case 0:
-      return "/tiles/ground-red.png";
-    case 1:
-      return "/tiles/ground-orange.png";
-    case 2:
-      return "/tiles/ground-green.png";
-    case 3:
-      return "/tiles/ground-blue.png";
-    default:
-      return "/tiles/ground.png";
-  }
-}
-
 const Tile: React.FC<TileProps> = React.memo(
   ({
     xOffset,
@@ -158,7 +143,16 @@ const Tile: React.FC<TileProps> = React.memo(
 
     const playerColor = controlledByIndex !== undefined ? PLAYER_COLORS[controlledByIndex] : null;
 
-    const tileImage = isBase ? `/tiles/base-${getPlayerColor(controlledByIndex)}.png` : "/tiles/ground.png"; // getGroundImage(controlledByIndex);
+    let tileImage = isBase ? `/tiles/base-${getPlayerColor(controlledByIndex)}.png` : "/tiles/ground.png";
+    if (building && building.buildingType && building.buildingType.gasPlant) {
+      tileImage = "/tiles/gas-plant.png";
+    }
+    if (building && building.buildingType && building.buildingType.tankFactory) {
+      tileImage = "/tiles/tank-factory.png";
+    }
+    if (building && building.buildingType && building.buildingType.planeFactory) {
+      tileImage = "/tiles/plane-factory.png";
+    }
 
     const tileClass = `tile-container ${isBase ? "base" : "ground"} ${isSelected ? "selected adjacent" : ""} ${
       isAdjacent ? "adjacent" : ""
@@ -166,6 +160,8 @@ const Tile: React.FC<TileProps> = React.memo(
 
     const showControlOverlay = !isBase && controlledByIndex !== undefined;
     const infantry = units?.unitType.infantry ? units.quantity : 0;
+    const tanks = units?.unitType.tank ? units.quantity : 0;
+    const planes = units?.unitType.plane ? units.quantity : 0;
     const mutants = units?.unitType.mutants ? units.quantity : 0;
     const stamina = units?.stamina;
     let unitClass = "";
@@ -198,6 +194,28 @@ const Tile: React.FC<TileProps> = React.memo(
             <img
               src="/units/infantry-icon.png"
               alt="Infantry"
+              className="unit"
+              style={{ borderColor: playerColor || "none" }}
+            />
+          </>
+        )}
+        {tanks > 0 && (
+          <>
+            <p className={`units-amount ${unitClass}`}>{tanks}</p>
+            <img
+              src="/units/tank-icon.png"
+              alt="Tank"
+              className="unit"
+              style={{ borderColor: playerColor || "none" }}
+            />
+          </>
+        )}
+        {planes > 0 && (
+          <>
+            <p className={`units-amount ${unitClass}`}>{planes}</p>
+            <img
+              src="/units/plane-icon.png"
+              alt="Plane"
               className="unit"
               style={{ borderColor: playerColor || "none" }}
             />

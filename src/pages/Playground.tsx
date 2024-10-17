@@ -110,6 +110,9 @@ const Playground: React.FC = () => {
       if (error instanceof Error && error.message.includes("TileNotOwned")) {
         toast.error("You don't control this tile");
       }
+      if (error instanceof Error && error.message.includes("DifferentUnitTypeOnTile")) {
+        toast.error("Tile is occupied by a different unit type.");
+      }
     }
   };
 
@@ -138,6 +141,32 @@ const Playground: React.FC = () => {
       toast.error(errorMessage);
     }
   };
+
+  const handleBuildConstruction = async (buildingType: any) => {
+    try {
+      if (!program || !getPublicKey() || !selectedTile || !gamePda) return;
+  
+      const gamePublicKey = new PublicKey(gamePda);
+  
+      await program.methods
+        .buildConstruction(selectedTile.row, selectedTile.col, buildingType)
+        .accounts({
+          game: gamePublicKey,
+        })
+        .rpc();
+  
+      fetchGameData();
+      toast.success('Construction built successfully.');
+    } catch (error) {
+      console.error('Error building construction:', error);
+      let errorMessage = 'Unknown error';
+      if (error instanceof Error) errorMessage = error.message;
+      if (errorMessage.includes('MaxLevelReached')) errorMessage = 'Building is already at max level.';
+      if (errorMessage.includes('NotEnoughFunds')) errorMessage = 'Not enough funds to build.';
+      if (errorMessage.includes('BuildingTypeMismatch')) errorMessage = 'Tile already has a building.'
+      toast.error(errorMessage);
+    }
+  };  
 
   useEffect(() => {
     if (!gamePda) {
@@ -225,6 +254,7 @@ const Playground: React.FC = () => {
           playerBalance={playerBalance}
           onRecruitUnits={handleRecruitUnits}
           onUpgradeBase={handleUpgradeBase}
+          onBuildConstruction={handleBuildConstruction}
           onClose={() => setSelectedTile(null)}
         />
       )}

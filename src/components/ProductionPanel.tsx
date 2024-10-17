@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import { Tooltip as ReactTooltip } from "react-tooltip";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShieldHalved } from "@fortawesome/free-solid-svg-icons";
+import BuildModal from "./BuildModal";
 import "./ProductionPanel.css";
 
 interface ProductionPanelProps {
@@ -10,6 +11,7 @@ interface ProductionPanelProps {
   playerBalance: number;
   onRecruitUnits: (unitType: string, quantity: number) => Promise<void>;
   onUpgradeBase: () => Promise<void>;
+  onBuildConstruction: (buildingType: any) => Promise<void>;
   onClose: () => void;
 }
 
@@ -18,12 +20,14 @@ const ProductionPanel: React.FC<ProductionPanelProps> = ({
   playerBalance,
   onRecruitUnits,
   onUpgradeBase,
+  onBuildConstruction,
   onClose,
 }) => {
   const [selectedUnitType, setSelectedUnitType] = useState<string | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
   const [isProducing, setIsProducing] = useState<boolean>(false);
   const [isUpgrading, setIsUpgrading] = useState<boolean>(false);
+  const [isBuildModalOpen, setIsBuildModalOpen] = useState<boolean>(false);
 
   const isBaseTile = useMemo(() => {
     return tileData && tileData.building && tileData.building.buildingType.base;
@@ -192,6 +196,42 @@ const ProductionPanel: React.FC<ProductionPanelProps> = ({
     }
   };
 
+  const handleBuildConstruction = async (buildingType: string) => {
+    const buildingTypeMap: { [key: string]: any } = {
+      GasPlant: { gasPlant: {} },
+      TankFactory: { tankFactory: {} },
+      PlaneFactory: { planeFactory: {} },
+    };
+
+    const selectedBuildingType = buildingTypeMap[buildingType];
+
+    if (!selectedBuildingType) {
+      toast.error("Invalid building type selected.");
+      return;
+    }
+
+    if (playerBalance < 12) {
+      toast.error("Not enough balance to build this structure.");
+      return;
+    }
+
+    try {
+      await onBuildConstruction(selectedBuildingType);
+      setIsBuildModalOpen(false);
+    } catch (error) {
+      console.error("Error building construction:", error);
+      toast.error("Error building construction.");
+    }
+  };
+
+  const handleOpenBuildModal = () => {
+    setIsBuildModalOpen(true);
+  };
+
+  const handleCloseBuildModal = () => {
+    setIsBuildModalOpen(false);
+  };
+
   return (
     <div>
       <div className="production-panel">
@@ -316,11 +356,16 @@ const ProductionPanel: React.FC<ProductionPanelProps> = ({
           )}
           {!isBaseTile && (
             <div className="upgrade-section">
-              <button className="upgrade-button">Build</button>
+              <button className="upgrade-button" onClick={handleOpenBuildModal}>
+                Build
+              </button>
             </div>
           )}
         </div>
       </div>
+      {isBuildModalOpen && (
+        <BuildModal playerBalance={playerBalance} onBuild={handleBuildConstruction} onClose={handleCloseBuildModal} />
+      )}
     </div>
   );
 };
