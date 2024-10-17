@@ -113,6 +113,7 @@ const IsometricMap: React.FC<{
       if (errorMessage.includes("NotEnoughAttackPoints")) errorMessage = "Not enough attack points";
       if (errorMessage.includes("NotEnoughStamina")) errorMessage = "Not enough stamina";
       if (errorMessage.includes("NotYourTurn")) errorMessage = "Not your turn";
+      if (errorMessage.includes("TileOccupiedByOtherUnitType")) errorMessage = "Tile is occupied by other unit type.";
 
       toast.error(errorMessage);
     }
@@ -151,8 +152,19 @@ const IsometricMap: React.FC<{
         tileData && tileData.controlledBy && tileData.controlledBy.toBase58() === playerPublicKey?.toBase58();
 
       if (isControlled) {
-        soundManager.play("walk");
+        console.log(selectedTile);
+        if (selectedTile.units && selectedTile.units.unitType.infantry) {
+          soundManager.play("walk");
+        }
+        if (selectedTile.units && selectedTile.units.unitType.tank) {
+          soundManager.play("tank-move");
+        }
+        if (selectedTile.units && selectedTile.units.unitType.plane) {
+          soundManager.play("jet-move");
+        }
         await handleMoveUnit(fromRow, fromCol, row, col);
+        soundManager.stop("tank-move");
+        soundManager.stop("jet-move");
       } else {
         setEffectTile({ row, col });
         soundManager.play("shots");

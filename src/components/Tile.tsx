@@ -165,13 +165,10 @@ const Tile: React.FC<TileProps> = React.memo(
     const mutants = units?.unitType.mutants ? units.quantity : 0;
     const stamina = units?.stamina;
     let unitClass = "";
-    switch (stamina) {
-      case 0:
-        unitClass += " no-stamina";
-        break;
-      case 1:
-        unitClass += " one-stamina";
-        break;
+    if (stamina == 0) {
+      unitClass += "no-stamina";
+    } else if (stamina && stamina >= 1) {
+      unitClass += "one-stamina";
     }
 
     return (
@@ -228,7 +225,7 @@ const Tile: React.FC<TileProps> = React.memo(
           </>
         )}
 
-        {!infantry && mutants === 0 && <div className="tile-overlay">LVL {level}</div>}
+        {!infantry && !tanks && !planes && !building && mutants === 0 && <div className="tile-overlay">LVL {level}</div>}
         {showTooltip && <div className="tooltip">{tooltipContent}</div>}
       </div>
     );

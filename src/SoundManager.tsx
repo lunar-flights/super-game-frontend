@@ -17,6 +17,16 @@ class SoundManager {
       preload: true,
     });
 
+    this.sounds["jet-move"] = new Howl({
+      src: [process.env.PUBLIC_URL + "/sounds/jet-move.mp3"],
+      preload: true,
+    });
+
+    this.sounds["tank-move"] = new Howl({
+      src: [process.env.PUBLIC_URL + "/sounds/tank-move.mp3"],
+      preload: true,
+    });
+
     this.sounds["select"] = new Howl({
       src: [process.env.PUBLIC_URL + "/sounds/select.mp3"],
       preload: true,
