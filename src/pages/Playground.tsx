@@ -128,6 +128,7 @@ const Playground: React.FC = () => {
 
       fetchGameData();
       toast.success("Capital upgraded successfully.");
+      setSelectedTile(null);
     } catch (error) {
       console.error("Error upgrading capital:", error);
       let errorMessage = "Unknown error";

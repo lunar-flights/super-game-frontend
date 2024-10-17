@@ -64,7 +64,7 @@ const ProductionPanel: React.FC<ProductionPanelProps> = ({
     }
 
     return tileYield;
-  }
+  };
 
   const getTileDefense = (tileData: any): number => {
     if (!tileData) return 0;
@@ -86,7 +86,29 @@ const ProductionPanel: React.FC<ProductionPanelProps> = ({
       }
     }
     return tileDefense;
-  }
+  };
+
+  const getNextCapitalStats = (tileData: any): string => {
+    if (!tileData) return "";
+    const { building } = tileData;
+    let stats = "";
+    if (building && building.buildingType.base) {
+      switch (building.level) {
+        case 1:
+          stats = "+4 defense, +1 yield";
+          break;
+        case 2:
+          stats = "+8 defense, +2 yield";
+          break;
+        case 3:
+          stats = "Max level";
+          break;
+        default:
+          stats = "";
+      }
+    }
+    return stats;
+  };
 
   const upgradeCost = getUpgradeCost(baseLevel);
   const canUpgrade = baseLevel < 3 && playerBalance >= upgradeCost;
@@ -182,27 +204,40 @@ const ProductionPanel: React.FC<ProductionPanelProps> = ({
               selectedUnitType === "Infantry" ? "selected" : ""
             }`}
             onClick={() => handleUnitTypeSelect("Infantry")}
+            data-tooltip-id="infantry-tooltip"
+            data-tooltip-content="Infantry: 1 strength, 1 stamina"
           />
-          <img
-            src="/units/tank-icon.png"
-            alt="Tank"
-            className={`unit-icon ${availableUnitTypes.Tank ? "" : "disabled"} ${
-              selectedUnitType === "Tank" ? "selected" : ""
-            }`}
-            onClick={() => handleUnitTypeSelect("Tank")}
-          />
-          <img
-            src="/units/plane-icon.png"
-            alt="Plane"
-            className={`unit-icon ${availableUnitTypes.Plane ? "" : "disabled"} ${
-              selectedUnitType === "Plane" ? "selected" : ""
-            }`}
-            onClick={() => handleUnitTypeSelect("Plane")}
-          />
+          <div
+            data-tooltip-id="tank-tooltip"
+            data-tooltip-content={availableUnitTypes.Tank ? "Tank: 3 strength, 3 stamina" : "Tank factory needed"}
+          >
+            <img
+              src="/units/tank-icon.png"
+              alt="Tank"
+              className={`unit-icon ${availableUnitTypes.Tank ? "" : "disabled"} ${
+                selectedUnitType === "Tank" ? "selected" : ""
+              }`}
+              onClick={() => handleUnitTypeSelect("Tank")}
+            />
+          </div>
+          <div
+            data-tooltip-id="tank-tooltip"
+            data-tooltip-content={availableUnitTypes.Tank ? "Plane: 4 strength, 5 stamina" : "Plane factory needed"}
+          >
+            <img
+              src="/units/plane-icon.png"
+              alt="Plane"
+              className={`unit-icon ${availableUnitTypes.Plane ? "" : "disabled"} ${
+                selectedUnitType === "Plane" ? "selected" : ""
+              }`}
+              onClick={() => handleUnitTypeSelect("Plane")}
+            />
+          </div>
+          <ReactTooltip place="top" id="infantry-tooltip" />
+          <ReactTooltip place="top" id="tank-tooltip" />
+          <ReactTooltip place="top" id="plane-tooltip" />
         </div>
-        {!selectedUnitType && (
-          <p className="production-hint">Select unit type</p>
-        )}
+        {!selectedUnitType && <p className="production-hint">Select unit type</p>}
         {selectedUnitType && (
           <>
             <div className="quantity-selector">
@@ -258,21 +293,24 @@ const ProductionPanel: React.FC<ProductionPanelProps> = ({
                   Max level
                 </button>
               ) : (
-                <button className="upgrade-button" onClick={handleUpgradeBase} disabled={!canUpgrade || isUpgrading}>
-                  {isUpgrading ? (
-                    <>
-                      <span className="spinner"></span>
-                    </>
-                  ) : (
-                    <>
-                      Upgrade:
-                      <span className="upgrade-cost">
-                        {upgradeCost}
-                        <img src="/ui/credits.png" width="16" alt="Credits" />
-                      </span>
-                    </>
-                  )}
-                </button>
+                <div data-tooltip-id="capital-stats" data-tooltip-content={getNextCapitalStats(tileData)}>
+                  <button className="upgrade-button" onClick={handleUpgradeBase} disabled={!canUpgrade || isUpgrading}>
+                    {isUpgrading ? (
+                      <>
+                        <span className="spinner"></span>
+                      </>
+                    ) : (
+                      <>
+                        Upgrade:
+                        <span className="upgrade-cost">
+                          {upgradeCost}
+                          <img src="/ui/credits.png" width="16" alt="Credits" />
+                        </span>
+                      </>
+                    )}
+                  </button>
+                  <ReactTooltip place="top" id="capital-stats" />
+                </div>
               )}
             </div>
           )}
