@@ -4,6 +4,10 @@ body {
   background-repeat: repeat;
 }
 
+body::-webkit-scrollbar {
+  display: none;
+}
+
 .grid-wrapper {
   position: relative;
   display: flex;
@@ -13,4 +17,6 @@ body {
 
 .isometric-grid {
   position: relative;
+  min-width: 1040px;
+  translate: 50%;
 }

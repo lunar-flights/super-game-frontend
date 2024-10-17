@@ -1,5 +1,6 @@
 .playground-container {
   position: relative;
+  min-width: 1040px;
   width: 100%;
   height: 100vh;
 }
