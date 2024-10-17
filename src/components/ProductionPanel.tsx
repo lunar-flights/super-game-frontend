@@ -37,6 +37,57 @@ const ProductionPanel: React.FC<ProductionPanelProps> = ({
     return 0;
   };
 
+  const getTileYield = (tileData: any): number => {
+    if (!tileData) return 0;
+    const { level, building } = tileData;
+    let tileYield = 0;
+    if (level === 3) {
+      tileYield = 1;
+    }
+    if (building && building.buildingType.base) {
+      switch (building.level) {
+        case 1:
+          tileYield += 3;
+          break;
+        case 2:
+          tileYield += 4;
+          break;
+        case 3:
+          tileYield += 6;
+          break;
+        default:
+          tileYield += 0;
+      }
+    }
+    if (building && building.buildingType.gasPlant) {
+      tileYield += 1;
+    }
+
+    return tileYield;
+  }
+
+  const getTileDefense = (tileData: any): number => {
+    if (!tileData) return 0;
+    const { level, building } = tileData;
+    let tileDefense = level;
+    if (building && building.buildingType.base) {
+      switch (building.level) {
+        case 1:
+          tileDefense += 12;
+          break;
+        case 2:
+          tileDefense += 16;
+          break;
+        case 3:
+          tileDefense += 24;
+          break;
+        default:
+          tileDefense += 0;
+      }
+    }
+    return tileDefense;
+  }
+
   const upgradeCost = getUpgradeCost(baseLevel);
   const canUpgrade = baseLevel < 3 && playerBalance >= upgradeCost;
   const maxLevelReached = baseLevel >= 3;
@@ -149,6 +200,9 @@ const ProductionPanel: React.FC<ProductionPanelProps> = ({
             onClick={() => handleUnitTypeSelect("Plane")}
           />
         </div>
+        {!selectedUnitType && (
+          <p className="production-hint">Select unit type</p>
+        )}
         {selectedUnitType && (
           <>
             <div className="quantity-selector">
@@ -183,39 +237,51 @@ const ProductionPanel: React.FC<ProductionPanelProps> = ({
         </button>
       </div>
       <div className="tile-info-container">
-        {isBaseTile && (
-          <div className="upgrade-section">
-            {maxLevelReached ? (
-              <button className="upgrade-button" disabled>
-                Max level reached
-              </button>
-            ) : (
-              <button className="upgrade-button" onClick={handleUpgradeBase} disabled={!canUpgrade || isUpgrading}>
-                {isUpgrading ? (
-                  <>
-                    <span className="spinner"></span>
-                  </>
-                ) : (
-                  `Upgrade Capital for ${upgradeCost}`
-                )}
-              </button>
-            )}
-          </div>
-        )}
-        {!isBaseTile && (
-          <div className="tile-info">
+        <div className="tile-info">
+          <div className="tile-stats">
             <div className="tile-info-item" data-tooltip-id={`defense-bonus`} data-tooltip-content="Defense bonus">
               <FontAwesomeIcon icon={faShieldHalved} />
-              <span>{` ${tileData.level}`}</span>
+              <span>{getTileDefense(tileData)}</span>
             </div>
             <div className="tile-info-item" data-tooltip-id={`yield-per-turn`} data-tooltip-content="Yield per turn">
               <img src="/ui/credits.png" width="16" alt="Yield" />
-              <span>{tileData.level === 3 ? 1 : 0}</span>
+              <span>{getTileYield(tileData)}</span>
             </div>
             <ReactTooltip place="top" id="defense-bonus" />
             <ReactTooltip place="top" id="yield-per-turn" />
           </div>
-        )}
+
+          {isBaseTile && (
+            <div className="upgrade-section">
+              {maxLevelReached ? (
+                <button className="upgrade-button" disabled>
+                  Max level
+                </button>
+              ) : (
+                <button className="upgrade-button" onClick={handleUpgradeBase} disabled={!canUpgrade || isUpgrading}>
+                  {isUpgrading ? (
+                    <>
+                      <span className="spinner"></span>
+                    </>
+                  ) : (
+                    <>
+                      Upgrade:
+                      <span className="upgrade-cost">
+                        {upgradeCost}
+                        <img src="/ui/credits.png" width="16" alt="Credits" />
+                      </span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          )}
+          {!isBaseTile && (
+            <div className="upgrade-section">
+              <button className="upgrade-button">Build</button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

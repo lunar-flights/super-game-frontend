@@ -1,5 +1,4 @@
-.production-panel,
-.tile-info-container {
+.production-panel, .tile-info-container {
   position: fixed;
   bottom: 165px;
   right: 20px;
@@ -22,10 +21,21 @@
   margin-bottom: 10px;
 }
 
+.production-hint {
+  text-align: center;
+  font-size: 13px;
+  background: #ffffff1c;
+  padding: 5px 0;
+}
+
 .tile-info {
   display: flex;
   flex-direction: row;
-  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.tile-stats {
+  display: flex;
 }
 
 .tile-info-item {
@@ -123,6 +133,8 @@
 }
 
 .upgrade-button {
+  flex-grow: 1;
+  text-align: center;
   width: 100%;
   padding: 8px;
   background-color: #007bff;
@@ -131,6 +143,15 @@
   color: #fff;
   font-weight: bold;
   cursor: pointer;
+}
+
+.upgrade-cost {
+  display: inline-flex;
+  align-items: center;
+}
+
+.upgrade-cost img {
+  margin-left: 4px;
 }
 
 .upgrade-button:hover {
