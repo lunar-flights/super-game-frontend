@@ -139,3 +139,14 @@
     transform: rotate(360deg);
   }
 }
+
+@media only screen and (max-width: 768px) {
+  .end-turn-button {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-left-radius: 50px;
+    border-bottom-right-radius: 50px;
+    top: 0;
+    bottom: unset;
+  }
+}

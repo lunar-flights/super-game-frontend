@@ -364,4 +364,9 @@
     height: 40px;
     font-size: 18px;
   }
+
+  .bottom-links .link-button button {
+    color: #000;
+    font-size: 13px;
+  }
 }
