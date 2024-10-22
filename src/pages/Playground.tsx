@@ -2,10 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { PublicKey } from "@solana/web3.js";
 import { toast } from "react-toastify";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faQuestionCircle } from "@fortawesome/free-solid-svg-icons";
 import useLocalWallet from "../hooks/useLocalWallet";
 import useProgram from "../hooks/useProgram";
 import IsometricMap from "../components/IsometricMap";
 import ProductionPanel from "../components/ProductionPanel";
+import HelpModal from "../components/HelpModal";
 import GameOverModal from "../components/GameOverModal";
 import "./Playground.css";
 
@@ -27,6 +30,7 @@ const Playground: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedTile, setSelectedTile] = useState<any | null>(null);
   const [isGameOverModalOpen, setIsGameOverModalOpen] = useState(false);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [isEndingTurn, setIsEndingTurn] = useState(false);
 
   const searchParams = new URLSearchParams(location.search);
@@ -145,28 +149,28 @@ const Playground: React.FC = () => {
   const handleBuildConstruction = async (buildingType: any) => {
     try {
       if (!program || !getPublicKey() || !selectedTile || !gamePda) return;
-  
+
       const gamePublicKey = new PublicKey(gamePda);
-  
+
       await program.methods
         .buildConstruction(selectedTile.row, selectedTile.col, buildingType)
         .accounts({
           game: gamePublicKey,
         })
         .rpc();
-  
+
       fetchGameData();
-      toast.success('Construction built successfully.');
+      toast.success("Construction built successfully.");
     } catch (error) {
-      console.error('Error building construction:', error);
-      let errorMessage = 'Unknown error';
+      console.error("Error building construction:", error);
+      let errorMessage = "Unknown error";
       if (error instanceof Error) errorMessage = error.message;
-      if (errorMessage.includes('MaxLevelReached')) errorMessage = 'Building is already at max level.';
-      if (errorMessage.includes('NotEnoughFunds')) errorMessage = 'Not enough funds to build.';
-      if (errorMessage.includes('BuildingTypeMismatch')) errorMessage = 'Tile already has a building.'
+      if (errorMessage.includes("MaxLevelReached")) errorMessage = "Building is already at max level.";
+      if (errorMessage.includes("NotEnoughFunds")) errorMessage = "Not enough funds to build.";
+      if (errorMessage.includes("BuildingTypeMismatch")) errorMessage = "Tile already has a building.";
       toast.error(errorMessage);
     }
-  };  
+  };
 
   useEffect(() => {
     if (!gamePda) {
@@ -258,6 +262,13 @@ const Playground: React.FC = () => {
           onClose={() => setSelectedTile(null)}
         />
       )}
+      <button className="help-button" onClick={() => setIsHelpModalOpen(true)} title="Help">
+        <FontAwesomeIcon icon={faQuestionCircle} /> Help
+      </button>
+
+      {/* Include the Help Modal */}
+      {isHelpModalOpen && <HelpModal onClose={() => setIsHelpModalOpen(false)} />}
+
       {isGameOverModalOpen && <GameOverModal winner={getWinnerInfo()} onClose={handleModalClose} />}
     </div>
   );

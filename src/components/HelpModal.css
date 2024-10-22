@@ -1,0 +1,94 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.help-modal {
+  background-color: #23272f;
+  padding: 20px 30px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 800px;
+  color: #fff;
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.help-modal .modal-content {
+  text-align: left;
+}
+
+.close-modal-button {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.close-modal-button:hover {
+  color: #ccc;
+}
+
+.modal-content h2 {
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.modal-content p {
+  margin-bottom: 10px;
+  line-height: 1.6;
+}
+
+.modal-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.modal-content th,
+.modal-content td {
+  border: 1px solid #444;
+  padding: 8px;
+  text-align: left;
+}
+
+.modal-content th {
+  background-color: #2c313a;
+}
+
+.modal-content tr:nth-child(even) {
+  background-color: #2c313a;
+}
+
+.modal-content ul {
+  list-style-type: disc;
+  margin-left: 20px;
+}
+
+.modal-content li {
+  margin-bottom: 5px;
+}
+
+@media (max-width: 600px) {
+  .help-modal {
+    padding: 15px 20px;
+  }
+
+  .close-modal-button {
+    top: 10px;
+    right: 15px;
+  }
+}

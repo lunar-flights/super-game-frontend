@@ -225,7 +225,7 @@ const Tile: React.FC<TileProps> = React.memo(
           </>
         )}
 
-        {!infantry && !tanks && !planes && !building && mutants === 0 && <div className="tile-overlay">LVL {level}</div>}
+        {!infantry && !tanks && !planes && !mutants && <div className="tile-overlay">LVL {building && building.buildingType.base ? building.level : level}</div>}
         {showTooltip && <div className="tooltip">{tooltipContent}</div>}
       </div>
     );
