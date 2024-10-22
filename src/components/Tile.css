@@ -166,3 +166,15 @@
   text-align: center;
   font-size: 12px;
 }
+
+.player-base {
+  position: absolute;
+  top: 15px;
+  background: #fff;
+  z-index: 3;
+  left: 111px;
+  padding: 5px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
