@@ -125,7 +125,7 @@
 .help-button {
   position: fixed;
   top: 20px;
-  right: 20px;
+  right: 80px;
   background-color: #23272f;
   border: 2px solid #393d44;
   color: #fff;
@@ -141,6 +141,28 @@
 }
 
 .help-button:focus {
+  outline: none;
+}
+
+.sound-toggle-button {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #23272f;
+  border: 2px solid #393d44;
+  color: #fff;
+  font-size: 18px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  z-index: 100;
+}
+
+.sound-toggle-button:hover {
+  background-color: #2c313a;
+}
+
+.sound-toggle-button:focus {
   outline: none;
 }
 

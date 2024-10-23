@@ -3,7 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { PublicKey } from "@solana/web3.js";
 import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faQuestionCircle } from "@fortawesome/free-solid-svg-icons";
+import { faQuestionCircle, faVolumeUp, faVolumeMute } from "@fortawesome/free-solid-svg-icons";
+import soundManager from "../SoundManager";
 import useLocalWallet from "../hooks/useLocalWallet";
 import useProgram from "../hooks/useProgram";
 import IsometricMap from "../components/IsometricMap";
@@ -35,6 +36,23 @@ const Playground: React.FC = () => {
 
   const searchParams = new URLSearchParams(location.search);
   const gamePda = searchParams.get("game");
+
+  const [isMusicOn, setIsMusicOn] = useState(soundManager.isMusicEnabled());
+
+  const handleToggleMusic = () => {
+    soundManager.toggleBackgroundMusic();
+    setIsMusicOn(soundManager.isMusicEnabled());
+  };
+
+  useEffect(() => {
+    if (soundManager.isMusicEnabled()) {
+      soundManager.playBackgroundMusic();
+    }
+
+    return () => {
+      soundManager.stopBackgroundMusic();
+    };
+  }, []);
 
   const fetchGameData = async () => {
     if (!program || !gamePda) {
@@ -266,7 +284,14 @@ const Playground: React.FC = () => {
         <FontAwesomeIcon icon={faQuestionCircle} /> Help
       </button>
 
-      {/* Include the Help Modal */}
+      <button
+        className="sound-toggle-button"
+        onClick={handleToggleMusic}
+        title={isMusicOn ? "Mute Music" : "Unmute Music"}
+      >
+        <FontAwesomeIcon icon={isMusicOn ? faVolumeUp : faVolumeMute} />
+      </button>
+
       {isHelpModalOpen && <HelpModal onClose={() => setIsHelpModalOpen(false)} />}
 
       {isGameOverModalOpen && <GameOverModal winner={getWinnerInfo()} onClose={handleModalClose} />}

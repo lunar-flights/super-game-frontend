@@ -3,8 +3,12 @@ import { Howl } from "howler";
 class SoundManager {
   private sounds: { [key: string]: Howl } = {};
   private backgroundMusic: Howl | null = null;
+  private isMusicOn: boolean = true;
 
   constructor() {
+    const savedMusicState = localStorage.getItem("isMusicOn");
+    this.isMusicOn = savedMusicState !== "false";
+
     this.sounds["shots"] = new Howl({
       src: [process.env.PUBLIC_URL + "/sounds/shots-2.mp3"],
       preload: true,
@@ -37,8 +41,11 @@ class SoundManager {
       preload: true,
       loop: true,
       volume: 0.2,
-      autoplay: true,
     });
+
+    if (this.isMusicOn) {
+      this.playBackgroundMusic();
+    }
   }
 
   play(soundName: string) {
@@ -58,6 +65,35 @@ class SoundManager {
     } else {
       console.warn(`Sound "${soundName}" not found.`);
     }
+  }
+
+  playBackgroundMusic() {
+    if (!this.isMusicOn || !this.backgroundMusic) return;
+    if (!this.backgroundMusic.playing()) {
+      this.backgroundMusic.play();
+    }
+  }
+
+  stopBackgroundMusic() {
+    if (this.backgroundMusic) {
+      this.backgroundMusic.stop();
+    }
+  }
+
+  toggleBackgroundMusic() {
+    this.isMusicOn = !this.isMusicOn;
+
+    if (this.isMusicOn) {
+      this.playBackgroundMusic();
+    } else {
+      this.stopBackgroundMusic();
+    }
+
+    localStorage.setItem("isMusicOn", this.isMusicOn.toString());
+  }
+
+  isMusicEnabled() {
+    return this.isMusicOn;
   }
 }
 
