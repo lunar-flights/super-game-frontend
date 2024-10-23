@@ -150,7 +150,7 @@ const HomePage: React.FC = () => {
         program.programId
       );
 
-      // max_players = 2, is_multiplayer = false, map_size = small
+      // max_players = 4, is_multiplayer = false, map_size = small
       await program.methods
         .createGame(4, false, { small: {} })
         .accounts({
@@ -168,6 +168,9 @@ const HomePage: React.FC = () => {
       return gamePda.toBase58();
     } catch (error) {
       console.error("Error creating game:", error);
+      if (error instanceof Error && error.message.includes("TooManyActiveGames")) {
+        toast.error("You have too many active games.");
+      }
     }
   };
 
