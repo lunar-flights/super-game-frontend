@@ -36,6 +36,11 @@ class SoundManager {
       preload: true,
     });
 
+    this.sounds["ding"] = new Howl({
+      src: [process.env.PUBLIC_URL + "/sounds/ding.mp3"],
+      preload: true,
+    });
+
     this.backgroundMusic = new Howl({
       src: [process.env.PUBLIC_URL + "/sounds/background.mp3"],
       preload: true,

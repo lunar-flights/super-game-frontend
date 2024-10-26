@@ -66,7 +66,7 @@ const Tile: React.FC<TileProps> = React.memo(
       if (unitType.infantry) return 1;
       if (unitType.mutants) return 1;
       if (unitType.tank) return 3;
-      if (unitType.plane) return 5;
+      if (unitType.plane) return 4;
       return 0;
     };
 

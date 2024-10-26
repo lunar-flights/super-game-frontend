@@ -20,6 +20,7 @@ interface GameData {
   tiles: any; //Tile[][];
   status: any;
   winner: any;
+  round: number;
 }
 
 const Playground: React.FC = () => {
@@ -86,6 +87,7 @@ const Playground: React.FC = () => {
     setIsEndingTurn(true);
     try {
       const gamePublicKey = new PublicKey(gamePda);
+      const prevGameData = gameData;
 
       await program.methods
         .endTurn()
@@ -94,7 +96,39 @@ const Playground: React.FC = () => {
         })
         .rpc();
 
-      fetchGameData();
+      // @ts-ignore
+      const gameAccount = await program.account.game.fetch(gamePublicKey);
+      gameAccount.gamePda = gamePda;
+      console.log("Fetched game data:", gameAccount);
+
+      let attackHappened = false;
+      if (prevGameData && prevGameData.tiles && gameAccount.tiles) {
+        const rows = prevGameData.tiles.length;
+        const cols = prevGameData.tiles[0].length;
+        outerLoop: for (let i = 0; i < rows; i++) {
+          for (let j = 0; j < cols; j++) {
+            const prevTile = prevGameData.tiles[i][j];
+            const newTile = gameAccount.tiles[i][j];
+            if (prevTile || newTile) {
+              const prevOwner = prevTile && prevTile.owner ? prevTile.owner.toBase58() : null;
+              const newOwner = newTile && newTile.owner ? newTile.owner.toBase58() : null;
+              if (prevOwner !== newOwner) {
+                attackHappened = true;
+                break outerLoop;
+              }
+            }
+          }
+        }
+      }
+
+      setGameData(gameAccount);
+
+      if (attackHappened) {
+        soundManager.play("shots");
+      } else {
+        soundManager.play("ding");
+      }
+      toast.success(`Round ${gameAccount.round}`);
     } catch (error) {
       console.error("Error ending turn:", error);
       toast.error("Error ending turn.");
