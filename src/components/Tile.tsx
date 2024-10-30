@@ -185,7 +185,7 @@ const Tile: React.FC<TileProps> = React.memo(
         {showControlOverlay && playerColor && (
           <div className="tile-control-overlay" style={{ backgroundColor: playerColor }}></div>
         )}
-        {controlledByIndex === 0 && isBase && (
+        {controlledBy.toBase58() === playerPublicKey.toBase58() && isBase && (
           <p className="player-base">You</p>
         )}
         {infantry > 0 && (

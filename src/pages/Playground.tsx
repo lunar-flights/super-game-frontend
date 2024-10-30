@@ -55,6 +55,20 @@ const Playground: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (!gamePda) {
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      fetchGameData();
+    }, 2000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [program, gamePda]);
+
   const fetchGameData = async () => {
     if (!program || !gamePda) {
       console.error("Program or gamePda not initialized");
@@ -131,7 +145,11 @@ const Playground: React.FC = () => {
       toast.success(`Round ${gameAccount.round}`);
     } catch (error) {
       console.error("Error ending turn:", error);
-      toast.error("Error ending turn.");
+      if (error instanceof Error && error.message.includes("NotYourTurn")) {
+        toast.error("Not your turn");
+      } else {
+        toast.error("Error ending turn.");
+      }
     } finally {
       setIsEndingTurn(false);
     }
