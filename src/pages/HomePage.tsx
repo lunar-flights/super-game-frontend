@@ -143,7 +143,6 @@ const HomePage: React.FC = () => {
 
       // @ts-ignore
       const superState = await program.account.superState.fetch(superStatePda);
-      console.log("Super state:", superState);
       let gameId = superState.gameCount;
       const [gamePda] = await PublicKey.findProgramAddressSync(
         [Buffer.from("GAME"), new anchor.BN(gameId).toArrayLike(Buffer, "le", 4)],
@@ -189,6 +188,76 @@ const HomePage: React.FC = () => {
       navigate(`/playground?game=${gameId}`);
     } else {
       toast.error("Failed to create game. Please try again.");
+    }
+  };
+
+  const handleMultiplayerClick = async () => {
+    if (isLoading) {
+      return;
+    }
+    setIsLoading(true);
+    toast.info("Creating a new multiplayer game...");
+    await requestAirdrop();
+    await checkPlayerProfile();
+    const gameId = await createMultiplayerGame();
+    setIsLoading(false);
+
+    if (gameId) {
+      navigate(`/join/${gameId}`);
+    } else {
+      toast.error("Failed to create game. Please try again.");
+    }
+  };
+
+  const createMultiplayerGame = async () => {
+    try {
+      if (!program) {
+        console.error("Program not initialized.");
+        return;
+      }
+
+      const playerPublicKey = getPublicKey();
+      if (!playerPublicKey) {
+        console.error("Wallet not found.");
+        return;
+      }
+
+      const [superStatePda] = await PublicKey.findProgramAddressSync([Buffer.from("SUPER")], program.programId);
+      const [playerProfilePda] = await PublicKey.findProgramAddressSync(
+        [Buffer.from("PROFILE"), playerPublicKey.toBuffer()],
+        program.programId
+      );
+
+      // @ts-ignore
+      const superState = await program.account.superState.fetch(superStatePda);
+      let gameId = superState.gameCount;
+      const [gamePda] = await PublicKey.findProgramAddressSync(
+        [Buffer.from("GAME"), new anchor.BN(gameId).toArrayLike(Buffer, "le", 4)],
+        program.programId
+      );
+
+      // max_players = 2, is_multiplayer = true, map_size = small
+      await program.methods
+        .createGame(2, true, { small: {} })
+        .accounts({
+          superState: superStatePda,
+          game: gamePda,
+          creator: playerPublicKey,
+          creatorProfile: playerProfilePda,
+        })
+        .rpc();
+
+      console.log("Created multiplayer game:", gamePda.toBase58());
+      // @ts-ignore
+      const game = await program.account.game.fetch(gamePda);
+      console.log("Game:", game);
+
+      return gamePda.toBase58();
+    } catch (error) {
+      console.error("Error creating multiplayer game:", error);
+      if (error instanceof Error && error.message.includes("TooManyActiveGames")) {
+        toast.error("You have too many active games.");
+      }
     }
   };
 
@@ -273,7 +342,7 @@ const HomePage: React.FC = () => {
           </div>
         </div>
 
-        <div className="banner multiplayer" onClick={() => toast.info("Soon! Check playground.")}>
+        <div className={`banner multiplayer ${isLoading ? "creating-game" : ""}`} onClick={handleMultiplayerClick}>
           <div className="banner-text">
             <h2>Multiplayer</h2>
             <p>Bet 0.10 SOL against other players</p>
