@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { PublicKey } from "@solana/web3.js";
 import { toast } from "react-toastify";
@@ -57,19 +57,56 @@ const Playground: React.FC = () => {
     };
   }, []);
 
+  const subscriptionIdRef = useRef<number | null>(null);
+
   useEffect(() => {
     if (!gamePda) {
+      navigate("/");
       return;
     }
 
-    const intervalId = setInterval(() => {
-      fetchGameData();
-    }, 2000);
+    fetchGameData();
+  }, [program, gamePda]);
+
+  useEffect(() => {
+    if (!gamePda || !program || !gameData) {
+      return;
+    }
+
+    const gamePublicKey = new PublicKey(gamePda);
+
+    if (gameData.isMultiplayer) {
+      // Set up subscription
+      try {
+        subscriptionIdRef.current = program.provider.connection.onAccountChange(
+          gamePublicKey,
+          async (accountInfo) => {
+            try {
+              // @ts-ignore
+              const gameAccount = program.account.game.coder.accounts.decode(
+                "game",
+                accountInfo.data
+              );
+              gameAccount.gamePda = gamePda;
+              console.log("Account changed:", gameAccount);
+              setGameData(gameAccount);
+            } catch (error) {
+              console.error("Error decoding game account data:", error);
+            }
+          }
+        );
+      } catch (error) {
+        console.error("Error setting up account subscription:", error);
+        toast.error("Error setting up account subscription. Please refresh the page.");
+      }
+    }
 
     return () => {
-      clearInterval(intervalId);
+      if (subscriptionIdRef.current !== null) {
+        program.provider.connection.removeAccountChangeListener(subscriptionIdRef.current);
+      }
     };
-  }, [program, gamePda]);
+  }, [program, gamePda, gameData?.isMultiplayer]);
 
   const fetchGameData = async () => {
     if (!program || !gamePda) {
