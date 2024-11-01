@@ -10,6 +10,7 @@ import useProgram from "../hooks/useProgram";
 import IsometricMap from "../components/IsometricMap";
 import ProductionPanel from "../components/ProductionPanel";
 import HelpModal from "../components/HelpModal";
+import Chat from "../components/Chat";
 import GameOverModal from "../components/GameOverModal";
 import "./Playground.css";
 
@@ -291,6 +292,9 @@ const Playground: React.FC = () => {
   const playerInfo = gameData.players[playerIndex];
   const playerBalance = playerInfo ? playerInfo.balance : 0;
   const attackPoints = playerInfo ? playerInfo.attackPoints : 0;
+  const playerColors = ["#d73a3a", "#ffa500", "#387ad7", "#2bcf5e"];
+  const playerColor = playerColors[playerIndex % playerColors.length];
+  const playerName = ["Red", "Orange", "Blue", "Green"][playerIndex % 4];
 
   return (
     <div className="playground-container">
@@ -300,6 +304,8 @@ const Playground: React.FC = () => {
         fetchGameData={fetchGameData}
         onTileSelect={setSelectedTile}
       />
+      <Chat playerColor={playerColor} playerName={playerName} />
+
       <button className="end-turn-button" onClick={handleEndTurn}>
         {isEndingTurn ? (
           <>
