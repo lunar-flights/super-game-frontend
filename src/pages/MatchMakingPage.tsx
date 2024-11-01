@@ -4,6 +4,7 @@ import { PublicKey } from "@solana/web3.js";
 import { ToastContainer, toast } from "react-toastify";
 import useProgram from "../hooks/useProgram";
 import useLocalWallet from "../hooks/useLocalWallet";
+import usePlayerSetup from "../hooks/usePlayerSetup";
 import "./MatchMakingPage.css";
 
 const MatchMakingPage: React.FC = () => {
@@ -11,8 +12,16 @@ const MatchMakingPage: React.FC = () => {
   const navigate = useNavigate();
   const program = useProgram();
   const { getPublicKey } = useLocalWallet();
+  const {
+    requestAirdrop,
+    checkPlayerProfile,
+    error: playerSetupError,
+    setError: setPlayerSetupError,
+  } = usePlayerSetup();
   const [gameData, setGameData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [joinError, setJoinError] = useState<string | null>(null);
+  const [isJoiningGame, setIsJoiningGame] = useState<boolean>(false);
 
   const gamePda = gameId;
 
@@ -21,7 +30,7 @@ const MatchMakingPage: React.FC = () => {
       navigate("/");
       return;
     }
-    fetchGameData();
+    setupPlayerAndFetchGame();
 
     // Check game status every 5 seconds
     const intervalId = setInterval(() => {
@@ -32,6 +41,18 @@ const MatchMakingPage: React.FC = () => {
       clearInterval(intervalId);
     };
   }, [program, gamePda]);
+
+  const setupPlayerAndFetchGame = async () => {
+    try {
+      setLoading(true);
+      await requestAirdrop();
+      await checkPlayerProfile();
+      await fetchGameData();
+    } catch (error) {
+      console.error("Error during player setup:", error);
+      setLoading(false);
+    }
+  };
 
   const fetchGameData = async () => {
     if (!program || !gamePda) {
@@ -52,18 +73,20 @@ const MatchMakingPage: React.FC = () => {
         toast.success("Opponent has joined. Starting game...");
         navigate(`/playground?game=${gamePda}`);
       } else if (gameAccount.status && gameAccount.status.notStarted) {
-        // if player is not in game, try to join
+        // if player is not in game, allow manual join
         const playerPublicKey = getPublicKey();
         const isPlayerInGame = gameAccount.players.some(
           (p: any) => p && p.pubkey && p.pubkey.toBase58() === playerPublicKey?.toBase58()
         );
-        if (!isPlayerInGame) {
-          joinGame();
+        if (!isPlayerInGame && !isJoiningGame) {
+          // joinGame();
         }
+      } else if (gameAccount.status && gameAccount.status.completed) {
+        setJoinError("This game has already been completed.");
       }
     } catch (error) {
       console.error("Error fetching game data:", error);
-      toast.error("Error fetching game data.");
+      setJoinError("Error fetching game data. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -75,11 +98,14 @@ const MatchMakingPage: React.FC = () => {
       return;
     }
     try {
+      setIsJoiningGame(true);
+      setJoinError(null); // Reset any previous errors
       const gamePublicKey = new PublicKey(gamePda);
       const playerPublicKey = getPublicKey();
 
       if (!playerPublicKey) {
         console.error("Player public key not found");
+        setJoinError("Wallet not found. Please refresh the page.");
         return;
       }
 
@@ -98,10 +124,24 @@ const MatchMakingPage: React.FC = () => {
         .rpc();
 
       toast.success("Joined the game successfully!");
-      fetchGameData();
+      await fetchGameData();
     } catch (error) {
       console.error("Error joining game:", error);
-      toast.error("Failed to join the game.");
+      let errorMessage = "Failed to join the game.";
+      if (error instanceof Error) {
+        if (error.message.includes("NotEnoughFunds")) {
+          errorMessage = "Not enough SOL to join the game. Please request SOL from the faucet.";
+        } else if (error.message.includes("GameIsFull")) {
+          errorMessage = "The game is full and cannot accept more players.";
+        } else if (error.message.includes("GameAlreadyStarted")) {
+          errorMessage = "The game has already started.";
+        } else if (error.message.includes("PlayerAlreadyInGame")) {
+          errorMessage = "You have already joined the game.";
+        }
+      }
+      setJoinError(errorMessage);
+    } finally {
+      setIsJoiningGame(false);
     }
   };
 
@@ -111,40 +151,77 @@ const MatchMakingPage: React.FC = () => {
     toast.info("Invite link copied to clipboard!");
   };
 
-  if (loading) {
-    return (
-      <div className="matchmaking-container">
-        <div className="status-message">
-          <h2>Loading game data...</h2>
-        </div>
-      </div>
-    );
-  }
+  const handleRetry = () => {
+    setPlayerSetupError(null);
+    setJoinError(null);
+    setupPlayerAndFetchGame();
+  };
 
-  if (!gameData) {
-    return (
-      <div className="matchmaking-container">
-        <div className="status-message">
-          <h2>Error loading game data. Please try again later.</h2>
-        </div>
-      </div>
-    );
-  }
+  const handleRequestSOL = () => {
+    window.open(process.env.REACT_APP_FAUCET_URL, "_blank");
+  };
+
+  const playerPublicKey = getPublicKey();
 
   return (
     <div className="matchmaking-container">
       <ToastContainer autoClose={2500} theme="dark" />
-      <div className="status-message">
-        <div className="spinner"></div>
-        <h2>Waiting for your opponent...</h2>
-      </div>
-      <div className="invite-link-container">
-        <p>Invite opponent using this link:</p>
-        <div className="invite-link">
-          <pre>{window.location.href}</pre>
-          <button onClick={handleCopyLink}>Copy</button>
+      {loading ? (
+        <div className="status-message">
+          <h2>Loading game data...</h2>
         </div>
-      </div>
+      ) : playerSetupError || joinError ? (
+        <div className="error-message">
+          <h2>{playerSetupError || joinError}</h2>
+          {playerSetupError && (
+            <>
+              <button onClick={handleRetry}>Retry</button>
+            </>
+          )}
+          {joinError && joinError.includes("SOL") && (
+            <button onClick={handleRequestSOL}>Request SOL from Faucet</button>
+          )}
+          <button onClick={() => navigate("/")}>Go to Home Page</button>
+        </div>
+      ) : (
+        <div>
+          {gameData && gameData.status && gameData.status.notStarted && (
+            <>
+              {!gameData.players.some(
+                (p: any) => p && p.pubkey && p.pubkey.toBase58() === playerPublicKey?.toBase58()
+              ) ? (
+                <div className="join-game-container">
+                  <h2>The game is ready to join.</h2>
+                  <button onClick={joinGame} disabled={isJoiningGame}>
+                    {isJoiningGame ? "Joining..." : "Join Game"}
+                  </button>
+                </div>
+              ) : gameData.creator.toBase58() === playerPublicKey?.toBase58() ? (
+                <div className="status-message">
+                  <div className="spinner"></div>
+                  <h2>Waiting for your opponent...</h2>
+                  <div className="invite-link-container">
+                    <p>Invite opponent using this link:</p>
+                    <div className="invite-link">
+                      <pre>{window.location.href}</pre>
+                      <button onClick={handleCopyLink}>Copy</button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="status-message">
+                  <h2>Waiting for the game to start...</h2>
+                </div>
+              )}
+            </>
+          )}
+          {gameData && gameData.status && gameData.status.live && (
+            <div className="status-message">
+              <h2>Opponent has joined. Starting game...</h2>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

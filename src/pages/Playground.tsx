@@ -22,6 +22,7 @@ interface GameData {
   status: any;
   winner: any;
   round: number;
+  isMultiplayer: boolean;
 }
 
 const Playground: React.FC = () => {
