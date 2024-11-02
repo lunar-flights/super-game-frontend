@@ -41,6 +41,11 @@ class SoundManager {
       preload: true,
     });
 
+    this.sounds["beep"] = new Howl({
+      src: [process.env.PUBLIC_URL + "/sounds/beep.wav"],
+      preload: true,
+    });
+
     this.backgroundMusic = new Howl({
       src: [process.env.PUBLIC_URL + "/sounds/background.mp3"],
       preload: true,

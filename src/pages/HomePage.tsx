@@ -15,6 +15,7 @@ import {
   faInfoCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { faXTwitter, faGithub } from "@fortawesome/free-brands-svg-icons";
+import soundManager from "../SoundManager";
 import useProgram from "../hooks/useProgram";
 import useLocalWallet from "../hooks/useLocalWallet";
 import usePlayerSetup from "../hooks/usePlayerSetup";
@@ -87,6 +88,7 @@ const HomePage: React.FC = () => {
     if (isLoading) {
       return;
     }
+    soundManager.play('beep');
     setIsLoading(true);
     toast.info("Creating a new playground game...");
     await requestAirdrop();
@@ -105,6 +107,7 @@ const HomePage: React.FC = () => {
     if (isLoading) {
       return;
     }
+    soundManager.play('beep');
     setIsLoading(true);
     toast.info("Creating a new multiplayer game...");
     await requestAirdrop();

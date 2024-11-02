@@ -23,6 +23,8 @@ interface GameData {
   winner: any;
   round: number;
   isMultiplayer: boolean;
+  turnTimestamp: number;
+  currentPlayerIndex: number;
 }
 
 const Playground: React.FC = () => {
@@ -36,6 +38,8 @@ const Playground: React.FC = () => {
   const [isGameOverModalOpen, setIsGameOverModalOpen] = useState(false);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [isEndingTurn, setIsEndingTurn] = useState(false);
+  const [solanaTimeOffset, setSolanaTimeOffset] = useState<number>(0);
+  const [remainingTime, setRemainingTime] = useState<number>(60);
 
   const searchParams = new URLSearchParams(location.search);
   const gamePda = searchParams.get("game");
@@ -57,6 +61,24 @@ const Playground: React.FC = () => {
     };
   }, []);
 
+  const fetchSolanaTimeOffset = async () => {
+    if (!program) {
+      return;
+    }
+    try {
+      const connection = program.provider.connection;
+      const slot = await connection.getSlot();
+      const blockTime = await connection.getBlockTime(slot);
+      if (blockTime !== null) {
+        const localTimestamp = Math.floor(Date.now() / 1000);
+        const offset = blockTime - localTimestamp;
+        setSolanaTimeOffset(offset);
+      }
+    } catch (error) {
+      console.error("Error fetching Solana clock:", error);
+    }
+  };
+
   const subscriptionIdRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -69,6 +91,46 @@ const Playground: React.FC = () => {
   }, [program, gamePda]);
 
   useEffect(() => {
+    if (!program) return;
+
+    fetchSolanaTimeOffset();
+
+    const intervalId = setInterval(() => {
+      fetchSolanaTimeOffset();
+    }, 60 * 1000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [program]);
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
+    if (gameData && gameData.turnTimestamp) {
+      intervalId = setInterval(() => {
+        const localTimestamp = Math.floor(Date.now() / 1000);
+        const estimatedSolanaTimestamp = localTimestamp + solanaTimeOffset;
+
+        const turnStartTime = gameData.turnTimestamp;
+        const elapsedTime = estimatedSolanaTimestamp - turnStartTime;
+        const maxTurnDuration = 60;
+
+        const timeLeft = Math.max(maxTurnDuration - elapsedTime, 0);
+        setRemainingTime(Math.floor(timeLeft));
+
+        if (timeLeft <= 0) {
+          fetchGameData();
+        }
+      }, 1000);
+    }
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [gameData, solanaTimeOffset]);
+
+  useEffect(() => {
     if (!gamePda || !program || !gameData) {
       return;
     }
@@ -78,23 +140,17 @@ const Playground: React.FC = () => {
     if (gameData.isMultiplayer) {
       // Set up subscription
       try {
-        subscriptionIdRef.current = program.provider.connection.onAccountChange(
-          gamePublicKey,
-          async (accountInfo) => {
-            try {
-              // @ts-ignore
-              const gameAccount = program.account.game.coder.accounts.decode(
-                "game",
-                accountInfo.data
-              );
-              gameAccount.gamePda = gamePda;
-              console.log("Account changed:", gameAccount);
-              setGameData(gameAccount);
-            } catch (error) {
-              console.error("Error decoding game account data:", error);
-            }
+        subscriptionIdRef.current = program.provider.connection.onAccountChange(gamePublicKey, async (accountInfo) => {
+          try {
+            // @ts-ignore
+            const gameAccount = program.account.game.coder.accounts.decode("game", accountInfo.data);
+            gameAccount.gamePda = gamePda;
+            console.log("Account changed:", gameAccount);
+            setGameData(gameAccount);
+          } catch (error) {
+            console.error("Error decoding game account data:", error);
           }
-        );
+        });
       } catch (error) {
         console.error("Error setting up account subscription:", error);
         toast.error("Error setting up account subscription. Please refresh the page.");
@@ -332,7 +388,33 @@ const Playground: React.FC = () => {
   const attackPoints = playerInfo ? playerInfo.attackPoints : 0;
   const playerColors = ["#d73a3a", "#ffa500", "#387ad7", "#2bcf5e"];
   const playerColor = playerColors[playerIndex % playerColors.length];
-  const playerName = ["Red", "Orange", "Blue", "Green"][playerIndex % 4];
+  const playerNames = ["Red", "Orange", "Blue", "Green"];
+  const playerName = playerNames[playerIndex % 4];
+
+  const currentPlayerIndex = gameData.currentPlayerIndex;
+  const currentPlayerName = playerNames[currentPlayerIndex % playerNames.length];
+
+  const getButtonLabel = () => {
+    let endTurnLabel = <span>End turn</span>;
+    if (gameData.isMultiplayer) {
+      if (playerIndex === currentPlayerIndex) {
+        endTurnLabel = (
+          <span>
+            End your turn <b>{remainingTime}s</b>
+          </span>
+        );
+      } else {
+        endTurnLabel = (
+          <>
+            <b>{remainingTime > 0 ? `${remainingTime}s ` : "End "}</b>
+            <span style={{ color: playerColors[currentPlayerIndex] }}>{currentPlayerName}</span>
+            's turn
+          </>
+        );
+      }
+    }
+    return endTurnLabel;
+  };
 
   return (
     <div className="playground-container">
@@ -342,7 +424,7 @@ const Playground: React.FC = () => {
         fetchGameData={fetchGameData}
         onTileSelect={setSelectedTile}
       />
-      <Chat playerColor={playerColor} playerName={playerName} />
+      {/* <Chat playerColor={playerColor} playerName={playerName} /> */}
 
       <button className="end-turn-button" onClick={handleEndTurn}>
         {isEndingTurn ? (
@@ -350,7 +432,7 @@ const Playground: React.FC = () => {
             <span className="spinner"></span>
           </>
         ) : (
-          "End Turn"
+          getButtonLabel()
         )}
       </button>
       <div className="balance-container">
